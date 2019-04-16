@@ -1,0 +1,40 @@
+plugins {
+	id 'java'
+	id 'application'
+//	id 'com.google.cloud.tools.jib' version '1.0.0'
+}
+
+group = 'appsecframework'
+mainClassName = 'appsecframework.MainController'
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+	// Official Jenkins Java API
+	compile 'com.offbytwo.jenkins:jenkins-client:0.3.8'
+	
+	// Jenkins REST API Java Wrapper
+	compile 'com.cdancy:jenkins-rest:0.0.16'
+	
+	// Logger
+	compile files('lib/slf4j-nop.jar')
+	
+	// UI Libraries
+	compile files('lib/jgoodies-forms-1.8.0.jar')
+	compile files('lib/miglayout15-swing.jar')
+
+	// Docker Java API by Spotify (https://github.com/spotify/docker-client)
+	compile 'com.spotify:docker-client:8.15.0'
+		
+	// SnakeYAML https://mvnrepository.com/artifact/org.yaml/snakeyaml
+	compile group: 'org.yaml', name: 'snakeyaml', version: '1.8'
+	
+	// HTTP Client
+	compile 'org.apache.httpcomponents:httpclient:4.5.7'
+
+	// Google GSON for JSON Objects
+	implementation 'com.google.code.gson:gson:2.5'
+	
+}

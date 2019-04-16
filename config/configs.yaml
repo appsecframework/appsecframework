@@ -1,0 +1,15 @@
+!!appsecframework.FrameworkConfig {
+  dockerPassword: password,
+  dockerSocket: 'unix:///var/run/docker.sock',
+  dockerUsername: erbazz,
+  dojoPassword: password,
+  dojoURL: 'http://localhost:8000/',
+  dojoUsername: admin,
+  gitEmail: weerawat.paw@gmail.com,
+  gitPassword: password,
+  gitUsername: erbazz,
+  jenkinsPassword: password,
+  jenkinsURL: 'http://localhost:8080/',
+  jenkinsUsername: admin,
+  reportDirectory: /home/erbazz/Desktop/scanresult/
+}
