@@ -6,27 +6,10 @@ services:
         ports:
             - "8000:8000"
         volumes:
-#            - "./scripts:/scripts"
             - django-DefectDojo:/django-DefectDojo
-#        depends_on:
-#            - "mysql"
         env_file:
             - ./env/common.env
             - ./env/dojo.env
-#        command: ["bash", "/scripts/wait-mysql.sh", "localhost:3306", "--", "echo", "MySQL is up!"]
-#    mysql:
-#        restart: always
-#        image: mysql:latest
-#        ports:
-#            - "3306:3306"
-#        env_file:
-#            - ./env/common.env
-#            - ./env/mysql.env
-#        environment:
-#            max_allowed_packet: "16M"
-#        volumes:
-#            - "/var/run/mysqld/mysqld.sock:/var/run/mysqld/mysqlx.sock"
-#            - mysqldata:/var/lib/mysqldata/data/
     jenkins:
         image: appsecframework/jenkins
         ports:
@@ -35,6 +18,4 @@ services:
             - "/var/run/docker.sock:/var/run/docker.sock"
 
 volumes:
-#    mysqldata: {}
     django-DefectDojo: {}
-#    scripts: {}
