@@ -2,7 +2,8 @@ version: "3"
 
 services:
     dojo:
-        image: appsecpipeline/django-defectdojo:latest
+        image: appsecframework/dojo
+        container_name: dojo
         ports:
             - "8000:8000"
         volumes:
@@ -12,6 +13,7 @@ services:
             - ./env/dojo.env
     jenkins:
         image: appsecframework/jenkins
+        container_name: jenkins
         ports:
             - "8080:8080"
         volumes:
