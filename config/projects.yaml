@@ -8,7 +8,7 @@
   pastScanResultPath: '',
   platform: Web Application,
   recent: false,
-  reportPath: /home/earthpatipon/Desktop/Wordpress/,
+  reportPath: /home/user/Desktop/Wordpress/,
   scanEventList: [
     ],
   scanList: [
