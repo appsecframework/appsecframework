@@ -5,8 +5,12 @@ import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,16 +48,16 @@ public class DashboardWindow {
 	private JLabel lblHigh;
 	private JLabel lblMedium;
 	private JLabel lblLow;
+	private JLabel lblInfo;
 	private JLabel lblStartTime;
 	private JLabel lblFinishTime;
 	private JLabel lblScanDuration;
 	private JLabel lblScanStatus;
 	private JTextField txtfProject;
+	private JTextField txtfLastScan;
 	private JTextField txtfFinding;
-	private JTextField txtfThreat;
-	private JTextField txtfFix;
+	private JTextField txtfHighRisk;
 
-	private static int size;
 	private static ArrayList<Project> projectList;
 	private static DojoUtils dojo;
 	private static String findingSource;
@@ -63,7 +67,12 @@ public class DashboardWindow {
 	public DashboardWindow() {
 		projectList = MainController.getProjectList();
 		dojo = MainController.getDojo();
-		initialize();
+
+		if (!MainController.isDbFetched()) {
+			initialize();
+		} else {
+			frame = MainController.getDbFrame();
+		}
 		frame.setVisible(true);
 	}
 
@@ -72,7 +81,7 @@ public class DashboardWindow {
 		panel = new JPanel(); // panel for all components
 		frame = SwingUtils.createWindow("Dashboard");
 		frame.getContentPane().add(panel);
-		menuPanel = SwingUtils.getMenuPanel();
+		menuPanel = SwingUtils.getMenuPanel(frame);
 
 		txtfProject = new JTextField("-");
 		txtfProject.setHorizontalAlignment(JTextField.CENTER);
@@ -80,50 +89,99 @@ public class DashboardWindow {
 		txtfProject.setEditable(false);
 		txtfProject.setFocusable(false);
 
+		txtfLastScan = new JTextField("-");
+		txtfLastScan.setHorizontalAlignment(JTextField.CENTER);
+		txtfLastScan.setBackground(Color.WHITE);
+		txtfLastScan.setEditable(false);
+		txtfLastScan.setFocusable(false);
+
 		txtfFinding = new JTextField("-");
 		txtfFinding.setHorizontalAlignment(JTextField.CENTER);
 		txtfFinding.setBackground(Color.WHITE);
 		txtfFinding.setEditable(false);
 		txtfFinding.setFocusable(false);
 
-		txtfThreat = new JTextField("-");
-		txtfThreat.setHorizontalAlignment(JTextField.CENTER);
-		txtfThreat.setBackground(Color.WHITE);
-		txtfThreat.setEditable(false);
-		txtfThreat.setFocusable(false);
+		txtfHighRisk = new JTextField("-");
+		txtfHighRisk.setHorizontalAlignment(JTextField.CENTER);
+		txtfHighRisk.setBackground(Color.WHITE);
+		txtfHighRisk.setEditable(false);
+		txtfHighRisk.setFocusable(false);
 
-		txtfFix = new JTextField("-");
-		txtfFix.setHorizontalAlignment(JTextField.CENTER);
-		txtfFix.setBackground(Color.WHITE);
-		txtfFix.setEditable(false);
-		txtfFix.setFocusable(false);
-
-		lblHigh = new JLabel("-");
+		lblHigh = new JLabel();
 		lblHigh.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		lblMedium = new JLabel("-");
+		lblMedium = new JLabel();
 		lblMedium.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		lblLow = new JLabel("-");
+		lblLow = new JLabel();
 		lblLow.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		
+		lblInfo = new JLabel();
+		lblInfo.setFont(new Font("Tahoma", Font.PLAIN, 15));
+
+		// Fetch Summary for Recent Project
+		lblRiskLevel = new JLabel("-");
+		lblRiskLevel.setFont(new Font("Tahoma", Font.PLAIN, 15));
+		lblStartTime = new JLabel("-");
+		lblStartTime.setFont(new Font("Tahoma", Font.PLAIN, 15));
+		lblFinishTime = new JLabel("-");
+		lblFinishTime.setFont(new Font("Tahoma", Font.PLAIN, 15));
+		lblScanDuration = new JLabel("-");
+		lblScanDuration.setFont(new Font("Tahoma", Font.PLAIN, 15));
+		lblScanStatus = new JLabel("-");
+		lblScanStatus.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		JPanel highRiskFound = new JPanel();
-		
-		if (projectList.size() > 0) {
-			List<DojoFinding> findings = dojo.getDojoFindingList(projectList.get(projectList.size() - 1).getName());
-			List<DojoFinding> highrisk = dojo.getHighRisk(findings);
-			List<DojoFinding> mediumrisk = dojo.getMediumRisk(findings);
-			List<DojoFinding> lowrisk = dojo.getLowRisk(findings);
-			size = highrisk.size() > 20 ? 20 : highrisk.size();
 
-			txtfProject.setText(projectList.get(projectList.size() - 1).getName());
-			txtfFinding.setText(String.valueOf(findings.size()));
-			txtfThreat.setText("" + highrisk.size());
-			txtfFix.setText("0");
+		if (projectList.size() != 0) {
+			Project project = projectList.get(projectList.size() - 1);
+			for (Project p : projectList) {
+				if (p.isRecent()) {
+					project = p;
+				}
+			}
+			int lastInd = project.getScanEventList().size() - 1;
 
-			lblHigh.setText(String.valueOf(highrisk.size()));
-			lblMedium.setText(String.valueOf(mediumrisk.size()));
-			lblLow.setText(String.valueOf(lowrisk.size()));
-			
-			highRiskFound = getHighRiskPanel(findings, highrisk); // TODO: to be edited
+			if (project.getScanEventList().size() != 0 && !project.getScanEventList().get(lastInd).isImported()) {
+				List<DojoFinding> findings = dojo.getDojoFindingList(project.getName());
+				List<DojoFinding> highrisk = DojoUtils.getHighRisk(findings);
+				List<DojoFinding> mediumrisk = DojoUtils.getMediumRisk(findings);
+				List<DojoFinding> lowrisk = DojoUtils.getLowRisk(findings);
+				List<DojoFinding> inforisk = DojoUtils.getInfoRisk(findings);
+				int max = Math.max(Math.max(highrisk.size(), mediumrisk.size()), lowrisk.size());
+				if (max == highrisk.size()) {
+					lblRiskLevel.setText("High");
+				} else if (max == mediumrisk.size()) {
+					lblRiskLevel.setText("Medium");
+				} else {
+					lblRiskLevel.setText("Low");
+				}
+				lblStartTime.setText(project.getStartScanDate());
+				lblFinishTime.setText(project.getLastScanDate());
+				SimpleDateFormat formatter = new SimpleDateFormat("MMM d yyyy, HH:mm:ss");
+				formatter.setTimeZone(TimeZone.getTimeZone("Asia/Bangkok"));
+				try {
+					Date startDate = formatter.parse(project.getStartScanDate());
+					Date stopDate = formatter.parse(project.getLastScanDate());
+					int hour = Math.abs(stopDate.getHours() - startDate.getHours());
+					int min = Math.abs(stopDate.getMinutes() - startDate.getMinutes());
+					int sec = Math.abs(stopDate.getSeconds() - startDate.getSeconds());
+
+					lblScanDuration.setText(hour + ":" + min + ":" + sec);
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}
+				lblScanStatus.setText(project.getScanStatus());
+
+				txtfProject.setText(project.getName());
+				txtfLastScan.setText(project.getLastScanDate().split(",")[0]);
+				txtfFinding.setText(String.valueOf(findings.size()));
+				txtfHighRisk.setText("" + highrisk.size());
+
+				lblHigh.setText(String.valueOf(highrisk.size()));
+				lblMedium.setText(String.valueOf(mediumrisk.size()));
+				lblLow.setText(String.valueOf(lowrisk.size()));
+				lblInfo.setText(String.valueOf(inforisk.size()));
+				highRiskFound = getHighRiskPanel(findings, highrisk);
+				project.getScanEventList().get(lastInd).setImported(true);
+				MainController.setDbFetched(true);
+			}
 		}
 
 		// Detail for this window goes here
@@ -131,18 +189,17 @@ public class DashboardWindow {
 		JButton dashboardProject = new JButton("Project");
 		dashboardProject.setIcon(new ImageIcon(getClass().getResource("/images/projectBanner.png")));
 		dashboardProject.setFocusable(false);
+		JButton dashboardLastScan = new JButton("Last Scan");
+		dashboardLastScan.setIcon(new ImageIcon(getClass().getResource("/images/scheduleBanner.png")));
+		dashboardLastScan.setFocusable(false);
 		JButton dashboardFinding = new JButton("Finding");
 		dashboardFinding.setIcon(new ImageIcon(getClass().getResource("/images/findingBanner.png")));
 		dashboardFinding.setFocusable(false);
-		JButton dashboardThreat = new JButton("Threat");
-		dashboardThreat.setIcon(new ImageIcon(getClass().getResource("/images/threat.png")));
-		dashboardThreat.setFocusable(false);
-		JButton dashboardFix = new JButton("Fix");
-		dashboardFix.setIcon(new ImageIcon(getClass().getResource("/images/fix.png")));
-		dashboardFix.setFocusable(false);
+		JButton dashboardHighRisk = new JButton("High Risk");
+		dashboardHighRisk.setIcon(new ImageIcon(getClass().getResource("/images/threatBanner.png")));
+		dashboardHighRisk.setFocusable(false);
 
 		// Fetch Recent Project
-
 		summaryPanel = new JPanel();
 		JLabel sumLblSummary = new JLabel("Summary ");
 		sumLblSummary.setFont(new Font("Tahoma", Font.BOLD, 18));
@@ -172,37 +229,19 @@ public class DashboardWindow {
 
 		JLabel sumLblHigh = new JLabel("High: ");
 		sumLblHigh.setFont(new Font("Tahoma", Font.PLAIN, 16));
-		;
 		sumLblHigh.setOpaque(true);
 
-		JLabel sumLblMeidum = new JLabel("Medium: ");
-		sumLblMeidum.setFont(new Font("Tahoma", Font.PLAIN, 16));
-		sumLblMeidum.setOpaque(true);
+		JLabel sumLblMedium = new JLabel("Medium: ");
+		sumLblMedium.setFont(new Font("Tahoma", Font.PLAIN, 16));
+		sumLblMedium.setOpaque(true);
 
 		JLabel sumLblLow = new JLabel("Low: ");
 		sumLblLow.setFont(new Font("Tahoma", Font.PLAIN, 16));
 		sumLblLow.setOpaque(true);
-
-		// Fetch Summary for Recent Project
-		lblRiskLevel = new JLabel();
-		lblRiskLevel.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		lblRiskLevel.setText("High");
-
-		lblStartTime = new JLabel();
-		lblStartTime.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		lblStartTime.setText("14-2-2019");
-
-		lblFinishTime = new JLabel();
-		lblFinishTime.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		lblFinishTime.setText("14-2-2019");
-
-		lblScanDuration = new JLabel();
-		lblScanDuration.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		lblScanDuration.setText("01:13:06");
-
-		lblScanStatus = new JLabel();
-		lblScanStatus.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		lblScanStatus.setText("SUCCESS");
+		
+		JLabel sumLblInfo = new JLabel("Info: ");
+		sumLblInfo.setFont(new Font("Tahoma", Font.PLAIN, 16));
+		sumLblInfo.setOpaque(true);
 
 		findingPanel = new JPanel();
 		JLabel findLblFinding = new JLabel("Finding");
@@ -227,29 +266,32 @@ public class DashboardWindow {
 								.addComponent(txtfProject, GroupLayout.PREFERRED_SIZE, 200, GroupLayout.PREFERRED_SIZE))
 						.addGap(70)
 						.addGroup(gl_dashboardPanel.createParallelGroup(Alignment.TRAILING)
+								.addComponent(dashboardLastScan, GroupLayout.PREFERRED_SIZE, 200,
+										GroupLayout.PREFERRED_SIZE)
+								.addComponent(txtfLastScan, GroupLayout.PREFERRED_SIZE, 200,
+										GroupLayout.PREFERRED_SIZE))
+						.addGap(70)
+						.addGroup(gl_dashboardPanel.createParallelGroup(Alignment.TRAILING)
 								.addComponent(dashboardFinding, GroupLayout.PREFERRED_SIZE, 200,
 										GroupLayout.PREFERRED_SIZE)
 								.addComponent(txtfFinding, GroupLayout.PREFERRED_SIZE, 200, GroupLayout.PREFERRED_SIZE))
 						.addGap(70)
 						.addGroup(gl_dashboardPanel.createParallelGroup(Alignment.TRAILING)
-								.addComponent(dashboardThreat, GroupLayout.PREFERRED_SIZE, 200,
+								.addComponent(dashboardHighRisk, GroupLayout.PREFERRED_SIZE, 200,
 										GroupLayout.PREFERRED_SIZE)
-								.addComponent(txtfThreat, GroupLayout.PREFERRED_SIZE, 200, GroupLayout.PREFERRED_SIZE))
-						.addGap(70)
-						.addGroup(gl_dashboardPanel.createParallelGroup(Alignment.TRAILING)
-								.addComponent(dashboardFix, GroupLayout.PREFERRED_SIZE, 200, GroupLayout.PREFERRED_SIZE)
-								.addComponent(txtfFix, GroupLayout.PREFERRED_SIZE, 200, GroupLayout.PREFERRED_SIZE))
+								.addComponent(txtfHighRisk, GroupLayout.PREFERRED_SIZE, 200,
+										GroupLayout.PREFERRED_SIZE))
 						.addGap(50)));
 		gl_dashboardPanel.setVerticalGroup(gl_dashboardPanel.createParallelGroup(Alignment.LEADING)
 				.addGroup(gl_dashboardPanel.createSequentialGroup().addGap(13).addGroup(gl_dashboardPanel
 						.createParallelGroup(Alignment.BASELINE)
-						.addComponent(dashboardFix, GroupLayout.PREFERRED_SIZE, 50, GroupLayout.PREFERRED_SIZE)
-						.addComponent(dashboardThreat, GroupLayout.PREFERRED_SIZE, 50, GroupLayout.PREFERRED_SIZE)
+						.addComponent(dashboardHighRisk, GroupLayout.PREFERRED_SIZE, 50, GroupLayout.PREFERRED_SIZE)
 						.addComponent(dashboardFinding, GroupLayout.PREFERRED_SIZE, 50, GroupLayout.PREFERRED_SIZE)
+						.addComponent(dashboardLastScan, GroupLayout.PREFERRED_SIZE, 50, GroupLayout.PREFERRED_SIZE)
 						.addComponent(dashboardProject, GroupLayout.PREFERRED_SIZE, 50, GroupLayout.PREFERRED_SIZE))
 						.addGap(0)
-						.addGroup(gl_dashboardPanel.createParallelGroup(Alignment.LEADING, false).addComponent(txtfFix)
-								.addComponent(txtfThreat).addComponent(txtfFinding)
+						.addGroup(gl_dashboardPanel.createParallelGroup(Alignment.LEADING, false)
+								.addComponent(txtfHighRisk).addComponent(txtfFinding).addComponent(txtfLastScan)
 								.addComponent(txtfProject, GroupLayout.DEFAULT_SIZE, 33, Short.MAX_VALUE))
 						.addContainerGap(30, Short.MAX_VALUE)));
 		dashboardPanel.setLayout(gl_dashboardPanel);
@@ -278,15 +320,22 @@ public class DashboardWindow {
 																		GroupLayout.DEFAULT_SIZE,
 																		GroupLayout.PREFERRED_SIZE))
 														.addGroup(gl_summaryPanel.createSequentialGroup()
-																.addComponent(sumLblMeidum).addGap(18)
+																.addComponent(sumLblMedium).addGap(18)
 																.addComponent(lblMedium, GroupLayout.PREFERRED_SIZE,
 																		GroupLayout.DEFAULT_SIZE,
 																		GroupLayout.PREFERRED_SIZE))
 														.addGroup(gl_summaryPanel.createSequentialGroup()
-																.addComponent(sumLblLow)
+																.addComponent(sumLblLow).addGap(18)
 																.addPreferredGap(ComponentPlacement.UNRELATED)
 																.addComponent(
 																		lblLow, GroupLayout.PREFERRED_SIZE,
+																		GroupLayout.DEFAULT_SIZE,
+																		GroupLayout.PREFERRED_SIZE))
+														.addGroup(gl_summaryPanel.createSequentialGroup()
+																.addComponent(sumLblInfo)
+																.addPreferredGap(ComponentPlacement.UNRELATED)
+																.addComponent(
+																		lblInfo, GroupLayout.PREFERRED_SIZE,
 																		GroupLayout.DEFAULT_SIZE,
 																		GroupLayout.PREFERRED_SIZE)))
 												.addGap(125)
@@ -342,7 +391,7 @@ public class DashboardWindow {
 						.addGroup(gl_summaryPanel.createParallelGroup(Alignment.LEADING).addGroup(gl_summaryPanel
 								.createSequentialGroup()
 								.addGroup(gl_summaryPanel.createParallelGroup(Alignment.BASELINE)
-										.addComponent(sumLblMeidum).addComponent(lblMedium, GroupLayout.PREFERRED_SIZE,
+										.addComponent(sumLblMedium).addComponent(lblMedium, GroupLayout.PREFERRED_SIZE,
 												GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 								.addPreferredGap(ComponentPlacement.UNRELATED)
 								.addGroup(gl_summaryPanel.createParallelGroup(Alignment.BASELINE)
@@ -358,6 +407,9 @@ public class DashboardWindow {
 												GroupLayout.PREFERRED_SIZE)))
 						.addPreferredGap(ComponentPlacement.UNRELATED)
 						.addGroup(gl_summaryPanel.createParallelGroup(Alignment.BASELINE).addComponent(sumLblScanStatus)
+								.addComponent(sumLblInfo)
+								.addComponent(lblInfo, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+										GroupLayout.PREFERRED_SIZE)
 								.addComponent(lblScanStatus, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
 										GroupLayout.PREFERRED_SIZE))
 						.addContainerGap(30, Short.MAX_VALUE)));
@@ -423,24 +475,19 @@ public class DashboardWindow {
 						.addPreferredGap(ComponentPlacement.UNRELATED)
 						.addComponent(contScrollPane, GroupLayout.DEFAULT_SIZE, 718, Short.MAX_VALUE)));
 		panel.setLayout(groupLayout);
-
+		MainController.setDbFrame(frame);
 	}
 
 	public static JPanel getHighRiskPanel(List<DojoFinding> findings, List<DojoFinding> highrisk) {
 		ArrayList<JPanel> panelList = new ArrayList<JPanel>();
+		int size = highrisk.size() > 20 ? 20 : highrisk.size();
 		String text = "more";
+
 		for (int i = 0; i < size; i++) { // i < severity
 			JButton button = new JButton(text);
 			button.setForeground(Color.BLUE.darker());
 			button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-			findingSource = highrisk.get(i).getUrl();
-			pattern = Pattern.compile(".+\\/([0-9]+)\\/");
-			if (findingSource == null) continue;
-			match = pattern.matcher(findingSource);
-			String URL = null;
-			if (match.find()) {
-				URL = "http://localhost:8000/finding/" + match.group(1);
-			}
+			String URL = "http://localhost:8000/finding/" + highrisk.get(i).getId();
 
 			button.addMouseListener(new CustomLabelClickListener(URL));
 
@@ -461,13 +508,14 @@ public class DashboardWindow {
 			JLabel riskName = new JLabel(highrisk.get(i).getTitle());
 			riskName.setFont(new Font("Tahoma", Font.PLAIN, 15));
 
-			JLabel location = new JLabel(highrisk.get(i).getFinding_url());
+			JLabel location = new JLabel(highrisk.get(i).getUrl());
 			location.setFont(new Font("Tahoma", Font.PLAIN, 15));
 
 			JTextArea description = new JTextArea(1, 200);
 			description.setText(trimmedDesc);
 			description.setLineWrap(true);
 			description.setWrapStyleWord(true);
+			description.setEditable(false);
 
 			GroupLayout groupLayout = new GroupLayout(tempPanel);
 			groupLayout.setHorizontalGroup(groupLayout.createParallelGroup(Alignment.LEADING).addGroup(groupLayout
@@ -500,7 +548,7 @@ public class DashboardWindow {
 			tempPanel.setLayout(groupLayout);
 			panelList.add(tempPanel);
 		}
-		JPanel panel = new JPanel(new GridLayout(panelList.size(), 0, 0, 0));
+		JPanel panel = new JPanel(new GridLayout(panelList.size() > 0 ? panelList.size() : 1, 0, 0, 0));
 		for (JPanel tempPanel : panelList) {
 			panel.add(tempPanel);
 		}

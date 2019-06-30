@@ -6,6 +6,7 @@ public class TestingTool {
 	private String toolName;
 	private String toolReportExtension;
 	private String toolType;
+	private String toolScanType;
 	private String toolSource;
 	private String toolDockerRepo;
 	private String dockerOptions;
@@ -55,6 +56,14 @@ public class TestingTool {
 
 	public void setToolType(String toolType) {
 		this.toolType = toolType;
+	}
+
+	public String getToolScanType() {
+		return toolScanType;
+	}
+
+	public void setToolScanType(String toolScanType) {
+		this.toolScanType = toolScanType;
 	}
 
 	public String getToolSource() {

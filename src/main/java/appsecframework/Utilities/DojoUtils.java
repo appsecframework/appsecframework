@@ -4,9 +4,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -27,6 +30,8 @@ import com.google.gson.reflect.TypeToken;
 import appsecframework.DojoEngagement;
 import appsecframework.DojoFinding;
 import appsecframework.DojoProduct;
+import appsecframework.MainController;
+import appsecframework.Project;
 import appsecframework.ScanEvent;
 import appsecframework.ScanResult;
 
@@ -84,7 +89,7 @@ public class DojoUtils {
 	 * @param dojoProductList List of DojoProduct objects
 	 * @return DojoProduct object with the id equal to the value of dojoProductId, null if not available
 	 */
-	public DojoProduct getDojoProductFrom(int productId) {
+	public DojoProduct getDojoProductFromId(int productId) {
 		CloseableHttpClient client = HttpClients.createDefault();
 		HttpGet httpGet = new HttpGet(dojoURL + "api/v2/products/" + productId);
 		httpGet.setHeader("Accept", "application/json");
@@ -128,12 +133,11 @@ public class DojoUtils {
 				.addTextBody("name", dojoProduct.getName())
 				.addTextBody("description", dojoProduct.getDescription())
 				.addTextBody("prod_type", "1")
-				.addTextBody("platform", dojoProduct.getPlatform())
+				.addTextBody("platform", "")
 				.build();
 		try {
 			httpPost.setEntity(entity);
 		} catch (Exception e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		CloseableHttpResponse response;
@@ -141,9 +145,8 @@ public class DojoUtils {
 			int productId = 0;
 			response = httpClient.execute(httpPost);
 			int statusCode = response.getStatusLine().getStatusCode();
-			if (statusCode != 201) {
+			if (statusCode == 200 || statusCode == 201) {
 				String responseBody = EntityUtils.toString(response.getEntity());
-				Gson gson = new Gson();
 				JsonObject jsonObject = new JsonParser().parse(responseBody).getAsJsonObject();
 				productId = jsonObject.get("id").getAsInt();
 				}
@@ -156,7 +159,6 @@ public class DojoUtils {
 			httpClient.close();
 			return productId;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return -1;
 		}
@@ -235,25 +237,19 @@ public class DojoUtils {
 		CloseableHttpClient httpClient = HttpClients.createDefault();
 		HttpPost httpPost = new HttpPost(dojoURL + "api/v2/engagements/");
 	    httpPost.setHeader("Authorization", dojoApiAuthHeader);
-//	    String product = "/api/v2/products/" + String.valueOf(dojoEngagement.getProduct()) + "/";
-//	    System.out.println(product);
 		HttpEntity entity = MultipartEntityBuilder
 				.create()
-//				.addTextBody("product", product)
 				.addTextBody("product", dojoEngagement.getProduct() + "")
 				.addTextBody("name", dojoEngagement.getName())
 				.addTextBody("description", dojoEngagement.getDescription())
 				.addTextBody("target_start", dojoEngagement.getTarget_start())
 				.addTextBody("target_end", dojoEngagement.getTarget_end())
-//				.addTextBody("lead", "/api/v2/users/1/")
 				.addTextBody("lead", "1")
-				//.addTextBody("prod_type", "1")
 				.addTextBody("status", dojoEngagement.getStatus())
 				.build();
 		try {
 			httpPost.setEntity(entity);
 		} catch (Exception e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		CloseableHttpResponse response;
@@ -261,9 +257,8 @@ public class DojoUtils {
 			int engagementId;
 			response = httpClient.execute(httpPost);
 			int statusCode = response.getStatusLine().getStatusCode();
-			if (statusCode == 201) {
+			if (statusCode == 200 || statusCode == 201) {
 				String responseBody = EntityUtils.toString(response.getEntity());
-				Gson gson = new Gson();
 				JsonObject jsonObject = new JsonParser().parse(responseBody).getAsJsonObject();
 				engagementId = jsonObject.get("id").getAsInt();
 			}
@@ -276,7 +271,6 @@ public class DojoUtils {
 			httpClient.close();
 			return engagementId;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return -1;
 		}
@@ -284,7 +278,7 @@ public class DojoUtils {
 	
 	public List<DojoFinding> getDojoFindingList() {
 		CloseableHttpClient client = HttpClients.createDefault();
-		HttpGet httpGet = new HttpGet(dojoURL + "api/v2/findings/?limit=500");
+		HttpGet httpGet = new HttpGet(dojoURL + "api/v2/findings/?limit=1000");
 		httpGet.setHeader("Accept", "application/json");
 		httpGet.setHeader("Content-type", "application/json");
 		httpGet.setHeader("Authorization", dojoApiAuthHeader);
@@ -316,7 +310,8 @@ public class DojoUtils {
 	
 	public List<DojoFinding> getDojoFindingList(String productName) {
 		CloseableHttpClient client = HttpClients.createDefault();
-		HttpGet httpGet = new HttpGet(dojoURL + "api/v2/findings/?limit=500&product__name=" + productName);
+		HttpGet httpGet = new HttpGet(dojoURL + "api/v2/findings/?limit=1000");
+		httpGet.setHeader("Accept", "application/json");
 		httpGet.setHeader("Accept", "application/json");
 		httpGet.setHeader("Content-type", "application/json");
 		httpGet.setHeader("Authorization", dojoApiAuthHeader);
@@ -376,6 +371,16 @@ public class DojoUtils {
 		return lowRisk;
 	}
 	
+	public static List<DojoFinding> getInfoRisk(List<DojoFinding> findings) {
+		List<DojoFinding> infoRisk = new ArrayList<DojoFinding>();
+		
+		for (DojoFinding f : findings) {
+			if (f.getSeverity().equals("Info") || f.getSeverity().equals("info")) infoRisk.add(f);
+		}
+
+		return infoRisk;
+	}
+	
 	/**
 	 * Import scan result file to DefectDojo
 	 * @param scanDate
@@ -385,7 +390,9 @@ public class DojoUtils {
 	 * @param lead
 	 * @param engagement
 	 */
-	public void importScanResult(ScanEvent scanEvent) {
+	public void importScanResult(Project project, ScanEvent scanEvent) {
+		long startTime = System.currentTimeMillis();
+		
 		List<DojoProduct> dojoProductList = this.getDojoProductList();
 		int lead = 1; // UserId of Engagement Creator (1 = admin)
 		
@@ -396,30 +403,29 @@ public class DojoUtils {
 			product.setName(scanEvent.getProjectName());
 			product.setDescription(scanEvent.getProjectName());
 			product.setPlatform(scanEvent.getProjectPlatform());
-			this.addDojoProduct(product);
+			addDojoProduct(product);
 			productId = getDojoProductId(scanEvent.getProjectName(), dojoProductList);
 		}
 
 		// Check if engagement available, create new if not
 		int engagementId = scanEvent.getEngagementId();
-		if (this.getDojoEngagement(engagementId) == null) {
+		if (engagementId == 0) {
 			DojoEngagement dojoEngagement = new DojoEngagement();
 			dojoEngagement.setProduct(productId);
 			dojoEngagement.setName(scanEvent.getProjectName() + " - AppSecPipelineFramework");
 			dojoEngagement.setDescription("Scanning results from Application Security Pipeline Framework");
-			dojoEngagement.setTarget_start(scanEvent.getScanStartDate());
-			dojoEngagement.setTarget_end(scanEvent.getScanFinishDate());
+			dojoEngagement.setTarget_start(scanEvent.getDojoStartDate());
+			dojoEngagement.setTarget_end(scanEvent.getDojoFinishDate());
 			dojoEngagement.setLead(1);
 			dojoEngagement.setStatus("Completed");
-			engagementId = this.addDojoEngagement(dojoEngagement);
+			engagementId = addDojoEngagement(dojoEngagement);
 			scanEvent.setEngagementId(engagementId);
 		}
 		
 		// POST each ScanResult to Dojo
 		for (ScanResult scanResult : scanEvent.getScanResultList()) {
-			//Example filePath = "/home/erbazz/Desktop/scanresult/report.xml";
-			String filePath = scanResult.getScanResultDirectory() + scanResult.getScanResultFileName();
 			String fileName = scanResult.getScanResultFileName();
+			String filePath = scanResult.getScanResultDirectory() + fileName;
 			String scanType = scanResult.getScanType();
 
 			File reportFile = new File(filePath);
@@ -433,35 +439,44 @@ public class DojoUtils {
 					.addTextBody("minimum_severity", "Info")
 					.addTextBody("verified", "false")
 					.addTextBody("active", "true")
-					
 					// Required
-					.addTextBody("scan_date", scanEvent.getScanFinishDate())
+					.addTextBody("scan_date", scanEvent.getDojoFinishDate())
 					.addBinaryBody("file", reportFile, ContentType.create("application/octet-stream"), fileName)
 					.addTextBody("scan_type", scanType)
 					.addTextBody("lead", String.valueOf(lead))					// User ID		
-					.addTextBody("engagement", String.valueOf(engagementId))		// Engagement ID
+					.addTextBody("engagement", String.valueOf(engagementId))	// Engagement ID
 					.build();
 			try {
 				httpPost.setEntity(entity);
 			} catch (Exception e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 			CloseableHttpResponse response;
 			try {
 				response = httpClient.execute(httpPost);
 				int statusCode = response.getStatusLine().getStatusCode();
-				if (statusCode != 200) {
+				if (statusCode != 201) {
 					String responseBody = EntityUtils.toString(response.getEntity());
 					System.out.println("Failed to import scan result. Status code: " + statusCode);
 					System.out.println(responseBody);
 				}
 				httpClient.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
+		Date date = new Date();
+		SimpleDateFormat formatter = new SimpleDateFormat("MMM d yyyy, HH:mm:ss");
+		formatter.setTimeZone(TimeZone.getTimeZone("Asia/Bangkok"));
+		String formattedDate = formatter.format(date);
+		
+		project.setRecent(true); //TODO: to be used ins. success or not in DB
+		project.setLastScanDate(formattedDate);
+	    MainController.setDbFetched(false); //to let Dashboard fetch new result
+	    
+	    long stopTime = System.currentTimeMillis();
+	    long elapsedTime = stopTime - startTime;
+	    System.out.println("Import result to DefectDojo " + project.getName() + ": " + elapsedTime + " ms");
 	}
 	
 	/**
@@ -484,13 +499,11 @@ public class DojoUtils {
 			entity = new StringEntity(json);
 			httpPost.setEntity(entity);
 		} catch (UnsupportedEncodingException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		CloseableHttpResponse response;
 		try {
 			response = client.execute(httpPost);
-			// TODO: Actions for other status code
 			int statusCode = response.getStatusLine().getStatusCode();
 			String responseBody = EntityUtils.toString(response.getEntity());
 			if (statusCode == 200) {
@@ -503,7 +516,6 @@ public class DojoUtils {
 			}
 			client.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

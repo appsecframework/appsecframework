@@ -44,19 +44,19 @@ public class ToolConfigurationWindow extends JFrame {
 	private JTextField txtfName;
 	private JTextField txtfReportExtension;
 	private JTextField txtfRespository;
+	private JTextField txtfScanType;
 	private JTextPane commandPane;
 	private JRadioButton rdbtnDocker;
 	private JRadioButton rdbtnGit;
 	private JRadioButton rdbtnLocalFiles;
 	private JButton btnBrowseRespository;
-	
+
 	private static int toolIndex;
 	private static ArrayList<TestingTool> toolList;
 	private static TestingTool tool;
-	
+
 	private String[] toolTypeList = new String[] { "", "Desktop", "Mobile Application", "Web Application" };
 	private String toolType = "";
-	
 
 	public ToolConfigurationWindow(TestingTool _tool, int _index) {
 		toolList = MainController.getToolList();
@@ -70,35 +70,41 @@ public class ToolConfigurationWindow extends JFrame {
 		panel = new JPanel(); // panel for all components
 		frame = SwingUtils.createWindow("Tool Configuration");
 		frame.getContentPane().add(panel);
-
+		menuPanel = SwingUtils.getMenuPanel(frame);
+		
 		// Detail for this window goes here
 		newToolsPanel = new JPanel();
 		JLabel lblNewTools = new JLabel("Tool Configuration");
 		lblNewTools.setFont(new Font("Tahoma", Font.PLAIN, 24));
-		
-		JLabel lblReportExtension = new JLabel("Report Extension: ");
-		lblReportExtension.setForeground(Color.BLACK);
-		lblReportExtension.setFont(new Font("Tahoma", Font.PLAIN, 18));
-		
-		JLabel lblRespository = new JLabel("Respository :");
+
+		JLabel lblName = new JLabel("Name: ");
+		lblName.setForeground(Color.BLACK);
+		lblName.setFont(new Font("Tahoma", Font.PLAIN, 18));
+
+		JLabel lblRespository = new JLabel("Respository: ");
 		lblRespository.setForeground(Color.BLACK);
 		lblRespository.setFont(new Font("Tahoma", Font.PLAIN, 18));
 
-		JLabel lblName = new JLabel("Name :");
-		lblName.setForeground(Color.BLACK);
-		lblName.setFont(new Font("Tahoma", Font.PLAIN, 18));
-		
-		JLabel lblType = new JLabel("Type :");
+		JLabel lblReportExtension = new JLabel("Report Extension: ");
+		lblReportExtension.setForeground(Color.BLACK);
+		lblReportExtension.setFont(new Font("Tahoma", Font.PLAIN, 18));
+
+		JLabel lblScanType = new JLabel("DefectDojo Scan Type: ");
+		lblScanType.setForeground(Color.BLACK);
+		lblScanType.setFont(new Font("Tahoma", Font.PLAIN, 18));
+
+		JLabel lblType = new JLabel("Type: ");
 		lblType.setForeground(Color.BLACK);
 		lblType.setFont(new Font("Tahoma", Font.PLAIN, 18));
-		
+
 		JLabel lblCommand = new JLabel("Command: ");
 		lblCommand.setForeground(Color.BLACK);
 		lblCommand.setFont(new Font("Tahoma", Font.PLAIN, 18));
-		
+
+		txtfName = new JTextField();
 		txtfReportExtension = new JTextField();
 		txtfRespository = new JTextField();
-		txtfName = new JTextField();
+		txtfScanType = new JTextField();
 
 		JSeparator separator = new JSeparator();
 		separator.setBackground(Color.LIGHT_GRAY);
@@ -113,12 +119,12 @@ public class ToolConfigurationWindow extends JFrame {
 		rdbtnGit.setFont(new Font("Tahoma", Font.PLAIN, 14));
 		rdbtnGit.addActionListener(rdbtnAction);
 		rdbtnGit.setVisible(false);
-		
+
 		rdbtnLocalFiles = new JRadioButton("Local Files");
 		rdbtnLocalFiles.setFont(new Font("Tahoma", Font.PLAIN, 14));
 		rdbtnLocalFiles.addActionListener(rdbtnAction);
 		rdbtnLocalFiles.setVisible(false);
-		
+
 		ButtonGroup radioGroup = new ButtonGroup();
 		radioGroup.add(rdbtnDocker);
 		radioGroup.add(rdbtnGit);
@@ -132,19 +138,21 @@ public class ToolConfigurationWindow extends JFrame {
 			}
 		});
 
-		JButton btnConfigureTool = new JButton("Configure Tool");
+		JButton btnConfigureTool = new JButton("Configure");
 		btnConfigureTool.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
 				HashMap<String, String> scanScript = new HashMap<String, String>();
-
-				String[] token = commandPane.getText().trim().split("\n");
-				for (String s : token) {
-					String[] temp = s.split(":", 2);
-					scanScript.put(temp[0].trim(), temp[1].trim());
+				if(!commandPane.getText().equals("")) {
+					String[] token = commandPane.getText().trim().split("\n");
+					for (String s : token) {
+						String[] temp = s.split(":", 2);
+						scanScript.put(temp[0].trim(), temp[1].trim());
+					}
 				}
 				tool.setScanScript(scanScript);
 				tool.setToolReportExtension(txtfReportExtension.getText());
-				if(txtfReportExtension.getText().charAt(0) == '.') {
+				tool.setToolScanType(txtfScanType.getText());
+				if (txtfReportExtension.getText().charAt(0) == '.') {
 					tool.setToolReportExtension(txtfReportExtension.getText().substring(1));
 				}
 				toolList.set(toolIndex, tool);
@@ -161,6 +169,14 @@ public class ToolConfigurationWindow extends JFrame {
 				ConfigUtils.saveTools("config/tools.yaml", toolList);
 				frame.dispose();
 				new ToolWindow();
+			}
+		});
+
+		JButton btnHelp = new JButton("?");
+		btnHelp.setFont(new Font("Tahoma", Font.BOLD, 11));
+		btnHelp.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new HelpWindow();
 			}
 		});
 
@@ -190,6 +206,7 @@ public class ToolConfigurationWindow extends JFrame {
 		// TODO: Fetching from project goes here
 		txtfName.setText(tool.getToolName());
 		txtfReportExtension.setText(tool.getToolReportExtension());
+		txtfScanType.setText(tool.getToolScanType());
 		comboboxType.setSelectedItem(tool.getToolType());
 		switch (tool.getToolSource()) {
 		case "Docker":
@@ -206,107 +223,114 @@ public class ToolConfigurationWindow extends JFrame {
 			break;
 		}
 		String text = "";
-		for (Map.Entry<String, String> entry : tool.getScanScript().entrySet()) {
-			text += entry.getKey() + ":" + entry.getValue() + "\n";
+		if(tool.getScanScript().size() != 0) {
+			for (Map.Entry<String, String> entry : tool.getScanScript().entrySet()) {
+				text += entry.getKey() + ":" + entry.getValue() + "\n";
+			}
 		}
 		commandPane.setText(text);
 
 		// Set all layouts
 		GroupLayout gl_newToolsPanel = new GroupLayout(newToolsPanel);
-		gl_newToolsPanel.setHorizontalGroup(
-			gl_newToolsPanel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_newToolsPanel.createSequentialGroup()
-					.addContainerGap()
-					.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.LEADING)
+		gl_newToolsPanel.setHorizontalGroup(gl_newToolsPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_newToolsPanel.createSequentialGroup().addContainerGap().addGroup(gl_newToolsPanel
+						.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_newToolsPanel.createSequentialGroup().addComponent(rdbtnDocker).addGap(47)
+								.addComponent(rdbtnGit).addGap(47).addComponent(rdbtnLocalFiles).addGap(865))
 						.addGroup(gl_newToolsPanel.createSequentialGroup()
-							.addComponent(commandScrollPane, GroupLayout.PREFERRED_SIZE, 1071, GroupLayout.PREFERRED_SIZE)
-							.addContainerGap())
-						.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.LEADING)
-							.addGroup(gl_newToolsPanel.createSequentialGroup()
-								.addComponent(rdbtnDocker)
-								.addGap(47)
-								.addComponent(rdbtnGit)
-								.addGap(47)
-								.addComponent(rdbtnLocalFiles)
-								.addGap(865))
-							.addGroup(gl_newToolsPanel.createSequentialGroup()
 								.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.LEADING)
-									.addComponent(separator, GroupLayout.DEFAULT_SIZE, 1160, Short.MAX_VALUE)
-									.addComponent(lblNewTools)
-									.addGroup(gl_newToolsPanel.createSequentialGroup()
-										.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.TRAILING)
-											.addGroup(Alignment.LEADING, gl_newToolsPanel.createSequentialGroup()
-												.addComponent(lblName, GroupLayout.PREFERRED_SIZE, 81, GroupLayout.PREFERRED_SIZE)
-												.addPreferredGap(ComponentPlacement.RELATED)
-												.addComponent(txtfName, GroupLayout.PREFERRED_SIZE, 308, GroupLayout.PREFERRED_SIZE))
-											.addGroup(Alignment.LEADING, gl_newToolsPanel.createSequentialGroup()
-												.addComponent(lblRespository)
+										.addComponent(separator, GroupLayout.DEFAULT_SIZE, 1123, Short.MAX_VALUE)
+										.addComponent(lblNewTools)
+										.addGroup(gl_newToolsPanel.createSequentialGroup().addComponent(lblRespository)
 												.addGap(18)
-												.addComponent(txtfRespository, GroupLayout.PREFERRED_SIZE, 308, GroupLayout.PREFERRED_SIZE)))
-										.addGap(18)
-										.addComponent(btnBrowseRespository, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE)))
+												.addComponent(txtfRespository, GroupLayout.PREFERRED_SIZE, 308,
+														GroupLayout.PREFERRED_SIZE)
+												.addGap(18).addComponent(btnBrowseRespository,
+														GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE))
+										.addGroup(gl_newToolsPanel.createSequentialGroup()
+												.addComponent(lblName, GroupLayout.PREFERRED_SIZE, 73,
+														GroupLayout.PREFERRED_SIZE)
+												.addGap(10).addComponent(txtfName, GroupLayout.PREFERRED_SIZE, 308,
+														GroupLayout.PREFERRED_SIZE)))
 								.addGap(31))
-							.addGroup(gl_newToolsPanel.createSequentialGroup()
-								.addComponent(btnConfigureTool)
-								.addGap(19)
+						.addGroup(gl_newToolsPanel.createSequentialGroup()
+								.addComponent(btnConfigureTool, GroupLayout.PREFERRED_SIZE, 114, GroupLayout.PREFERRED_SIZE)
+								.addGap(18)
 								.addComponent(btnRemove, GroupLayout.PREFERRED_SIZE, 114, GroupLayout.PREFERRED_SIZE)
-								.addContainerGap(955, Short.MAX_VALUE))
-							.addGroup(gl_newToolsPanel.createSequentialGroup()
-								.addComponent(lblType)
-								.addPreferredGap(ComponentPlacement.UNRELATED)
-								.addComponent(comboboxType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
 								.addContainerGap())
-							.addGroup(gl_newToolsPanel.createSequentialGroup()
-								.addComponent(lblReportExtension)
-								.addPreferredGap(ComponentPlacement.UNRELATED)
-								.addComponent(txtfReportExtension, GroupLayout.PREFERRED_SIZE, 308, GroupLayout.PREFERRED_SIZE)
-								.addContainerGap()))
+						.addGroup(gl_newToolsPanel.createSequentialGroup().addComponent(lblReportExtension)
+								.addPreferredGap(ComponentPlacement.RELATED)
+								.addComponent(txtfReportExtension, GroupLayout.PREFERRED_SIZE, 308,
+										GroupLayout.PREFERRED_SIZE)
+								.addContainerGap())
 						.addGroup(gl_newToolsPanel.createSequentialGroup()
-							.addComponent(lblCommand, GroupLayout.PREFERRED_SIZE, 106, GroupLayout.PREFERRED_SIZE)
-							.addContainerGap(1048, Short.MAX_VALUE))))
-		);
-		gl_newToolsPanel.setVerticalGroup(
-			gl_newToolsPanel.createParallelGroup(Alignment.LEADING)
-				.addGroup(gl_newToolsPanel.createSequentialGroup()
-					.addGap(21)
-					.addComponent(lblNewTools)
-					.addPreferredGap(ComponentPlacement.UNRELATED)
-					.addComponent(separator, GroupLayout.PREFERRED_SIZE, 2, GroupLayout.PREFERRED_SIZE)
-					.addGap(17)
-					.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.TRAILING)
+								.addComponent(lblScanType, GroupLayout.PREFERRED_SIZE, 220, GroupLayout.PREFERRED_SIZE)
+								.addPreferredGap(ComponentPlacement.RELATED)
+								.addComponent(txtfScanType, GroupLayout.PREFERRED_SIZE, 308, GroupLayout.PREFERRED_SIZE)
+								.addContainerGap())
 						.addGroup(gl_newToolsPanel.createSequentialGroup()
-							.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.TRAILING)
-								.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.BASELINE)
-									.addComponent(rdbtnDocker)
-									.addComponent(rdbtnGit))
-								.addComponent(rdbtnLocalFiles))
-							.addGap(7)
-							.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.TRAILING)
-								.addComponent(lblRespository)
-								.addComponent(txtfRespository, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)))
-						.addComponent(btnBrowseRespository, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
-					.addGap(18)
-					.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.TRAILING)
-						.addComponent(lblName, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-						.addComponent(txtfName, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
-					.addGap(18)
-					.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(lblReportExtension, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-						.addComponent(txtfReportExtension, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
-					.addGap(11)
-					.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(lblType, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-						.addComponent(comboboxType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-					.addGap(18)
-					.addComponent(lblCommand, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-					.addGap(18)
-					.addComponent(commandScrollPane, GroupLayout.PREFERRED_SIZE, 413, GroupLayout.PREFERRED_SIZE)
-					.addGap(18)
-					.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(btnRemove, GroupLayout.PREFERRED_SIZE, 67, GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnConfigureTool, GroupLayout.PREFERRED_SIZE, 67, GroupLayout.PREFERRED_SIZE))
-					.addContainerGap())
-		);
+								.addComponent(commandScrollPane, GroupLayout.PREFERRED_SIZE, 1071,
+										GroupLayout.PREFERRED_SIZE)
+								.addContainerGap(83, Short.MAX_VALUE))
+						.addGroup(gl_newToolsPanel.createSequentialGroup().addGroup(gl_newToolsPanel
+								.createParallelGroup(Alignment.TRAILING)
+								.addGroup(Alignment.LEADING,
+										gl_newToolsPanel.createSequentialGroup().addComponent(lblCommand)
+												.addPreferredGap(ComponentPlacement.RELATED).addComponent(btnHelp))
+								.addGroup(Alignment.LEADING,
+										gl_newToolsPanel.createSequentialGroup().addComponent(lblType)
+												.addPreferredGap(ComponentPlacement.RELATED).addComponent(comboboxType,
+														GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+														GroupLayout.PREFERRED_SIZE)))
+								.addGap(989)))));
+		gl_newToolsPanel.setVerticalGroup(gl_newToolsPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_newToolsPanel.createSequentialGroup().addGap(21).addComponent(lblNewTools)
+						.addPreferredGap(ComponentPlacement.UNRELATED)
+						.addComponent(separator, GroupLayout.PREFERRED_SIZE, 2, GroupLayout.PREFERRED_SIZE).addGap(17)
+						.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.TRAILING).addGroup(gl_newToolsPanel
+								.createSequentialGroup()
+								.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.TRAILING)
+										.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.BASELINE)
+												.addComponent(rdbtnDocker).addComponent(rdbtnGit))
+										.addComponent(rdbtnLocalFiles))
+								.addGap(7)
+								.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.TRAILING)
+										.addComponent(lblRespository).addComponent(txtfRespository,
+												GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)))
+								.addComponent(btnBrowseRespository, GroupLayout.PREFERRED_SIZE, 25,
+										GroupLayout.PREFERRED_SIZE))
+						.addGap(9)
+						.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.TRAILING)
+								.addGroup(gl_newToolsPanel.createSequentialGroup()
+										.addComponent(txtfName, GroupLayout.PREFERRED_SIZE, 25,
+												GroupLayout.PREFERRED_SIZE)
+										.addGap(14))
+								.addGroup(gl_newToolsPanel.createSequentialGroup()
+										.addComponent(lblName, GroupLayout.PREFERRED_SIZE, 25,
+												GroupLayout.PREFERRED_SIZE)
+										.addPreferredGap(ComponentPlacement.UNRELATED)))
+						.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.TRAILING)
+								.addComponent(lblReportExtension).addComponent(txtfReportExtension,
+										GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
+						.addGap(17)
+						.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.TRAILING)
+								.addComponent(txtfScanType, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+								.addComponent(lblScanType, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
+						.addGap(11)
+						.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.BASELINE)
+								.addComponent(lblType, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+								.addComponent(comboboxType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
+										GroupLayout.PREFERRED_SIZE))
+						.addPreferredGap(ComponentPlacement.RELATED)
+						.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.TRAILING).addComponent(lblCommand)
+								.addComponent(btnHelp))
+						.addPreferredGap(ComponentPlacement.UNRELATED)
+						.addComponent(commandScrollPane, GroupLayout.PREFERRED_SIZE, 408, GroupLayout.PREFERRED_SIZE)
+						.addPreferredGap(ComponentPlacement.RELATED)
+						.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.BASELINE)
+								.addComponent(btnConfigureTool, GroupLayout.PREFERRED_SIZE, 67, GroupLayout.PREFERRED_SIZE)
+								.addComponent(btnRemove, GroupLayout.PREFERRED_SIZE, 67, GroupLayout.PREFERRED_SIZE))
+						.addGap(31)));
 		newToolsPanel.setLayout(gl_newToolsPanel);
 
 		// Adjust the overall layout of this window

@@ -1,21 +1,6 @@
 !!appsecframework.TestingTool
 dockerOptions: null
 scanScript: {
-  ZAP Scan: 'docker run --rm -v {{SCAN_RESULT_DIRECTORY}}:/zap/wrk/:rw -t owasp/zap2docker-weekly
-    zap-baseline.py -t {{SCAN_TARGET_URL}} -x {{SCAN_RESULT_FILE}}'
-}
-startScript: null
-stopScript: null
-toolDockerRepo: owasp/zap2docker-weekly
-toolGitRepo: null
-toolName: OWASP Zap
-toolPath: null
-toolReportExtension: xml
-toolSource: Docker
-toolType: Web Application
---- !!appsecframework.TestingTool
-dockerOptions: null
-scanScript: {
   Full Scan: 'docker run --rm -v {{SCAN_RESULT_DIRECTORY}}:/arachni/reports ahannigan/docker-arachni
     bin/arachni {{SCAN_TARGET_URL}} --report-save-path=reports/report.afr',
   Converter: 'docker run --rm -v {{SCAN_RESULT_DIRECTORY}}:/arachni/reports ahannigan/docker-arachni
@@ -27,6 +12,23 @@ toolDockerRepo: ahannigan/docker-arachni
 toolGitRepo: null
 toolName: Arachni
 toolPath: null
+toolReportExtension: json
+toolScanType: Arachni Scan
+toolSource: Docker
+toolType: Web Application
+--- !!appsecframework.TestingTool
+dockerOptions: null
+scanScript: {
+  ZAP Scan: 'docker run --rm -v {{SCAN_RESULT_DIRECTORY}}:/zap/wrk/:rw -t owasp/zap2docker-weekly
+    zap-baseline.py -t {{SCAN_TARGET_URL}} -x {{SCAN_RESULT_FILE}}'
+}
+startScript: null
+stopScript: null
+toolDockerRepo: owasp/zap2docker-weekly
+toolGitRepo: null
+toolName: OWASP Zap
+toolPath: null
 toolReportExtension: xml
+toolScanType: ZAP Scan
 toolSource: Docker
 toolType: Web Application

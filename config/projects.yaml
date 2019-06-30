@@ -1,219 +1,17 @@
 !!appsecframework.Project {
+  checkError: false,
   customScan: true,
-  dockerRepo: appsecframework/dvwa-nologin,
+  dockerRepo: '',
   gitRepo: '',
-  imported: true,
-  lastScanDate: Apr 9 2019,
-  name: DVWA,
+  lastScanDate: '-',
+  name: Wordpress,
   pastScanResultPath: '',
   platform: Web Application,
-  reportPath: /home/earthpatipon/Desktop/scanresult/,
+  recent: false,
+  reportPath: /home/earthpatipon/Desktop/Wordpress/,
   scanEventList: [
-    {
-      engagementId: -1,
-      imported: false,
-      projectName: DVWA,
-      projectPlatform: Web Application,
-      scanFinishDate: '1552298339349',
-      scanResultList: [
-        {
-          scanName: Normal Scan,
-          scanResultDirectory: /home/erbazz/Desktop/scanresult/,
-          scanResultFileName: dvwa.xml0,
-          scanType: Normal Scan
-        }]
-      ,
-      scanStartDate: '1552298339349'
-    },
-    {
-      engagementId: 18,
-      imported: false,
-      projectName: DVWA,
-      projectPlatform: Web Application,
-      scanFinishDate: '2019-03-11',
-      scanResultList: [
-        {
-          scanName: Normal Scan,
-          scanResultDirectory: /home/erbazz/Desktop/scanresult/,
-          scanResultFileName: dvwa.xml1,
-          scanType: Normal Scan
-        }]
-      ,
-      scanStartDate: '2019-03-11'
-    },
-    {
-      engagementId: 19,
-      imported: false,
-      projectName: DVWA,
-      projectPlatform: Web Application,
-      scanFinishDate: '2019-03-11',
-      scanResultList: [
-        {
-          scanName: Normal Scan,
-          scanResultDirectory: /home/erbazz/Desktop/scanresult/,
-          scanResultFileName: DVWAOWASP ZapNormalScan2xml,
-          scanType: Normal Scan
-        }]
-      ,
-      scanStartDate: '2019-03-11'
-    },
-    {
-      engagementId: 20,
-      imported: false,
-      projectName: DVWA,
-      projectPlatform: Web Application,
-      scanFinishDate: '2019-03-12',
-      scanResultList: [
-        {
-          scanName: Normal Scan,
-          scanResultDirectory: /home/erbazz/Desktop/scanresult/,
-          scanResultFileName: DVWA_OWASPZap.xml,
-          scanType: Normal Scan
-        }]
-      ,
-      scanStartDate: '2019-03-12'
-    },
-    {
-      engagementId: 14,
-      imported: false,
-      projectName: DVWA,
-      projectPlatform: Web Application,
-      scanFinishDate: '2019-03-12',
-      scanResultList: [
-        {
-          scanName: Normal Scan,
-          scanResultDirectory: /home/erbazz/Desktop/scanresult/,
-          scanResultFileName: DVWA_OWASPZap.xml,
-          scanType: Normal Scan
-        }]
-      ,
-      scanStartDate: '2019-03-12'
-    },
-    {
-      engagementId: 15,
-      imported: false,
-      projectName: DVWA,
-      projectPlatform: Web Application,
-      scanFinishDate: '2019-03-12',
-      scanResultList: [
-        {
-          scanName: Normal Scan,
-          scanResultDirectory: /home/erbazz/Desktop/scanresult/,
-          scanResultFileName: DVWA_OWASPZap.xml,
-          scanType: Normal Scan
-        }]
-      ,
-      scanStartDate: '2019-03-12'
-    },
-    {
-      engagementId: 16,
-      imported: false,
-      projectName: DVWA,
-      projectPlatform: Web Application,
-      scanFinishDate: '2019-03-12',
-      scanResultList: [
-        {
-          scanName: ZAP Scan,
-          scanResultDirectory: /home/erbazz/Desktop/scanresult/,
-          scanResultFileName: DVWA_OWASPZap.xml,
-          scanType: ZAP Scan
-        }]
-      ,
-      scanStartDate: '2019-03-12'
-    },
-    {
-      engagementId: -1,
-      imported: false,
-      projectName: DVWA,
-      projectPlatform: Web Application,
-      scanFinishDate: '2019-03-13',
-      scanResultList: [
-        {
-          scanName: ZAP Scan,
-          scanResultDirectory: /home/erbazz/Desktop/scanresult/,
-          scanResultFileName: DVWA_OWASPZap.,
-          scanType: ZAP Scan
-        }]
-      ,
-      scanStartDate: '2019-03-13'
-    },
-    {
-      engagementId: -1,
-      imported: false,
-      projectName: DVWA,
-      projectPlatform: Web Application,
-      scanFinishDate: '2019-04-09',
-      scanResultList: [
-        {
-          scanName: ZAP Scan,
-          scanResultDirectory: /home/earthpatipon/Desktop/scanresult/,
-          scanResultFileName: DVWA_OWASPZap.xml,
-          scanType: ZAP Scan
-        },
-        {
-          scanName: Full Scan,
-          scanResultDirectory: /home/earthpatipon/Desktop/scanresult/,
-          scanResultFileName: DVWA_Arachni.xml,
-          scanType: Full Scan
-        },
-        {
-          scanName: Converter,
-          scanResultDirectory: /home/earthpatipon/Desktop/scanresult/,
-          scanResultFileName: DVWA_Arachni.xml,
-          scanType: Converter
-        }]
-      ,
-      scanStartDate: '2019-04-09'
-    },
-    {
-      engagementId: -1,
-      imported: false,
-      projectName: DVWA,
-      projectPlatform: Web Application,
-      scanFinishDate: '2019-04-09',
-      scanResultList: [
-        {
-          scanName: ZAP Scan,
-          scanResultDirectory: /home/earthpatipon/Desktop/scanresult/,
-          scanResultFileName: DVWA_OWASPZap.xml,
-          scanType: ZAP Scan
-        },
-        {
-          scanName: Full Scan,
-          scanResultDirectory: /home/earthpatipon/Desktop/scanresult/,
-          scanResultFileName: DVWA_Arachni.xml,
-          scanType: Full Scan
-        },
-        {
-          scanName: Converter,
-          scanResultDirectory: /home/earthpatipon/Desktop/scanresult/,
-          scanResultFileName: DVWA_Arachni.xml,
-          scanType: Converter
-        }]
-      ,
-      scanStartDate: '2019-04-09'
-    }]
-  ,
+    ],
   scanList: [
-    {
-      scanName: ZAP Scan,
-      tool: {
-        dockerOptions: null,
-        scanScript: {
-          ZAP Scan: 'docker run --rm -v {{SCAN_RESULT_DIRECTORY}}:/zap/wrk/:rw -t
-            owasp/zap2docker-weekly zap-baseline.py -t {{SCAN_TARGET_URL}} -x {{SCAN_RESULT_FILE}}'
-        },
-        startScript: null,
-        stopScript: null,
-        toolDockerRepo: owasp/zap2docker-weekly,
-        toolGitRepo: null,
-        toolName: OWASP Zap,
-        toolPath: null,
-        toolReportExtension: xml,
-        toolSource: Docker,
-        toolType: Web Application
-      }
-    },
     {
       scanName: Full Scan,
       tool: &id001 {
@@ -230,7 +28,8 @@
         toolGitRepo: null,
         toolName: Arachni,
         toolPath: null,
-        toolReportExtension: xml,
+        toolReportExtension: json,
+        toolScanType: Arachni Scan,
         toolSource: Docker,
         toolType: Web Application
       }
@@ -238,29 +37,31 @@
     {
       scanName: Converter,
       tool: *id001
+    },
+    {
+      scanName: ZAP Scan,
+      tool: {
+        dockerOptions: null,
+        scanScript: {
+          ZAP Scan: 'docker run --rm -v {{SCAN_RESULT_DIRECTORY}}:/zap/wrk/:rw -t
+            owasp/zap2docker-weekly zap-baseline.py -t {{SCAN_TARGET_URL}} -x {{SCAN_RESULT_FILE}}'
+        },
+        startScript: null,
+        stopScript: null,
+        toolDockerRepo: owasp/zap2docker-weekly,
+        toolGitRepo: null,
+        toolName: OWASP Zap,
+        toolPath: null,
+        toolReportExtension: xml,
+        toolScanType: ZAP Scan,
+        toolSource: Docker,
+        toolType: Web Application
+      }
     }]
   ,
-  scanStatus: Success,
+  scanStatus: Not Start,
   source: Docker,
   sourcePath: '',
-  urlPort: '10.0.2.15:80'
-}
---- !!appsecframework.Project {
-  customScan: false,
-  dockerRepo: test,
-  gitRepo: '',
-  imported: false,
-  lastScanDate: '-',
-  name: test,
-  pastScanResultPath: '',
-  platform: Web Application,
-  reportPath: test,
-  scanEventList: [
-    ],
-  scanList: [
-    ],
-  scanStatus: Not Started,
-  source: Docker,
-  sourcePath: '',
+  startScanDate: '',
   urlPort: '10.0.2.15:80'
 }

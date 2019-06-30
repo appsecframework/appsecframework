@@ -11,8 +11,10 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Date;
+import java.util.TimeZone;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
@@ -38,14 +40,15 @@ import javax.swing.table.TableCellRenderer;
 
 import appsecframework.MainController;
 import appsecframework.Project;
+import appsecframework.ScanEvent;
 import appsecframework.Utilities.ConfigUtils;
+import appsecframework.Utilities.DojoUtils;
 import appsecframework.Utilities.JenkinsUtils;
 import appsecframework.Utilities.SwingUtils;
 
 public class ProjectWindow {
 	// TODO: Add Start job when Scan Now is pressed
 	private static JFrame frame;
-	private DefaultTableModel tableModel;
 	private JPanel panel;
 	private JPanel menuPanel;
 	private JPanel headingPanel;
@@ -54,13 +57,15 @@ public class ProjectWindow {
 	private JTable projectTable;
 	private JTableHeader projectTableHeader;
 	private Timer timer;
-
-	private static final int WAIT_SECOND = 5000;
+	
+	private DefaultTableModel tableModel;
+	private static final int WAIT_SECOND = 10000;
 	private static ArrayList<Project> projectList;
 
 	String[] columns = new String[] { "Name", "Application Type", "Last Scan Date", "Scan Status", "Scan",
 			"Configuration", "Result" };
-
+	String[] options = {"View  Error"};
+	
 	public ProjectWindow() {
 		projectList = MainController.getProjectList();
 		initialize();
@@ -71,7 +76,7 @@ public class ProjectWindow {
 		panel = new JPanel(); // panel for all components
 		frame = SwingUtils.createWindow("Project");
 		frame.getContentPane().add(panel);
-		menuPanel = SwingUtils.getMenuPanel();
+		menuPanel = SwingUtils.getMenuPanel(frame);
 
 		// Detail for this window goes here
 		headingPanel = new JPanel();
@@ -99,7 +104,8 @@ public class ProjectWindow {
 			String lastScanDate = p.getLastScanDate();
 			String scanStatus = p.getScanStatus();
 
-			Object[] data = { projectName, projectType, lastScanDate, scanStatus, "Scan Now", "Configure", "View" };
+			Object[] data = { projectName, projectType, lastScanDate.split(",")[0], scanStatus, "Scan Now", "Configure",
+					"View" };
 			tableModel.addRow(data);
 		}
 
@@ -312,10 +318,10 @@ public class ProjectWindow {
 	}
 
 	// For Scan Button action
-	static class scanEditor extends DefaultCellEditor {
+	class scanEditor extends DefaultCellEditor {
 		protected JButton button;
 		private String label;
-		//private boolean isPushed;
+		// private boolean isPushed;
 		private int row;
 
 		public scanEditor(JCheckBox checkBox) {
@@ -325,10 +331,65 @@ public class ProjectWindow {
 			button.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					fireEditingStopped();
-					MainController.getJenkins().startJob(projectList.get(row).getName());
-					projectList.get(row).setScanStatus("Scanning...");
-					projectList.get(row).setImported(false); // Set imported status to false when start new scan
+					for (Project p : projectList) {
+						p.setRecent(false);
+						p.setCheckError(false);
+					}
+					Project project = projectList.get(row);
+					project.setScanStatus("Scanning...");
+					SimpleDateFormat formatter = new SimpleDateFormat("MMM d yyyy, HH:mm:ss");
+					SimpleDateFormat dojoFormatter = new SimpleDateFormat("YYYY-MM-dd");
+					formatter.setTimeZone(TimeZone.getTimeZone("Asia/Bangkok"));
+					dojoFormatter.setTimeZone(TimeZone.getTimeZone("Asia/Bangkok"));
+					Date date = new Date();
+
+					ScanEvent scanEvent = new ScanEvent(); // create new scanEvent immediately after click scan
+					scanEvent.setProjectName(project.getName());
+					scanEvent.setProjectPlatform(project.getPlatform());
+					scanEvent.setScanStartDate(formatter.format(date));
+					scanEvent.setDojoStartDate(dojoFormatter.format(date));
+					project.setStartScanDate(formatter.format(date)); // to be easier to fetch
+					project.getScanEventList().add(scanEvent);
+					MainController.getJenkins().startJob(project.getName());
 					
+					tableModel = new DefaultTableModel(columns, 0); // columns, row
+					for (Project p : projectList) {
+						//if (!p.getScanStatus().equals("Success") && !p.getScanStatus().equals("Not Start")) {
+						Object[] data = { p.getName(), p.getPlatform(), p.getLastScanDate().split(",")[0], p.getScanStatus(),
+								"Scan Now", "Configure", "View" };
+						tableModel.addRow(data);
+					}
+					ConfigUtils.saveProjects("config/projects.yaml", projectList);
+
+					projectTable.setModel(tableModel);
+					projectTable.setFillsViewportHeight(true);
+					projectTable.setShowVerticalLines(false);
+					projectTable.setShowHorizontalLines(false);
+					projectTable.setRowSelectionAllowed(false);
+					projectTable.setBackground(SystemColor.menu);
+					projectTable.setShowGrid(false);
+					projectTable.setRowHeight(30);
+
+					// Custom Table Header
+					projectTableHeader = projectTable.getTableHeader();
+					projectTableHeader.setReorderingAllowed(false);
+					projectTableHeader.setFont(new Font("Tahoma", Font.PLAIN, 16));
+					((DefaultTableCellRenderer) projectTableHeader.getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
+
+					// Custom Column "Status"
+					projectTable.getColumn("Scan Status").setCellRenderer(new LabelRenderer());
+
+					// Custom Column "Scan"
+					projectTable.getColumn("Scan").setCellRenderer(new scanRenderer());
+					projectTable.getColumn("Scan").setCellEditor(new scanEditor(new JCheckBox()));
+
+					projectTable.getColumn("Configuration").setCellRenderer(new configureRenderer());
+					projectTable.getColumn("Configuration").setCellEditor(new configureEditor(new JCheckBox()));
+
+					// Custom Column "Download"
+					projectTable.getColumn("Result").setCellRenderer(new viewRenderer());
+					projectTable.getColumn("Result").setCellEditor(new viewEditor(new JCheckBox()));
+					projectTable.setDefaultRenderer(Object.class, new TableRenderer());
 				}
 			});
 		}
@@ -336,8 +397,6 @@ public class ProjectWindow {
 		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row,
 				int column) {
 			this.row = row;
-			//isPushed = true;
-			
 			if (isSelected) {
 				button.setForeground(table.getSelectionForeground());
 				button.setBackground(table.getSelectionBackground());
@@ -345,24 +404,15 @@ public class ProjectWindow {
 				button.setForeground(table.getForeground());
 				button.setBackground(table.getBackground());
 			}
-			
+
 			label = (value == null) ? "" : value.toString();
 			button.setText(label);
 			return button;
 		}
 
 		public Object getCellEditorValue() {
-//			if (isPushed) {
-//				JOptionPane.showMessageDialog(button, label + ": Done");
-//			}
-//			isPushed = false;
 			return new String(label);
 		}
-
-//		public boolean stopCellEditing() {
-//			isPushed = false;
-//			return super.stopCellEditing();
-//		}
 
 		protected void fireEditingStopped() {
 			super.fireEditingStopped();
@@ -373,7 +423,6 @@ public class ProjectWindow {
 	static class configureEditor extends DefaultCellEditor {
 		protected JButton button;
 		private String label;
-		//private boolean isPushed;
 		private int row;
 
 		public configureEditor(JCheckBox checkBox) {
@@ -392,7 +441,6 @@ public class ProjectWindow {
 		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row,
 				int column) {
 			this.row = row;
-			//isPushed = true;
 			label = (value == null) ? "" : value.toString();
 			button.setText(label);
 			button.setIcon(new ImageIcon(getClass().getResource("/images/configure.png")));
@@ -400,13 +448,9 @@ public class ProjectWindow {
 		}
 
 		public Object getCellEditorValue() {
-//			if (isPushed) {
-//				JOptionPane.showMessageDialog(button, label + ": Done");
-//			}
-//			isPushed = false;
 			return new String(label);
 		}
-		
+
 		protected void fireEditingStopped() {
 			super.fireEditingStopped();
 		}
@@ -416,7 +460,6 @@ public class ProjectWindow {
 	static class viewEditor extends DefaultCellEditor {
 		protected JButton button;
 		private String label;
-		//private boolean isPushed;
 		private int row;
 
 		public viewEditor(JCheckBox checkBox) {
@@ -427,14 +470,15 @@ public class ProjectWindow {
 				public void actionPerformed(ActionEvent e) {
 					fireEditingStopped();
 					if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-						String uri = "http://localhost:8000/product/" + (row + 1) + "/finding/all";
+						DojoUtils dojo = MainController.getDojo();
+						int dojoProductId = DojoUtils.getDojoProductId(projectList.get(row).getName(),
+								dojo.getDojoProductList());
+						String uri = "http://localhost:8000/product/" + dojoProductId + "/finding/all";
 						try {
 							Desktop.getDesktop().browse(new URI(uri));
 						} catch (IOException e1) {
-							// TODO Auto-generated catch block
 							e1.printStackTrace();
 						} catch (URISyntaxException e1) {
-							// TODO Auto-generated catch block
 							e1.printStackTrace();
 						}
 					}
@@ -454,15 +498,10 @@ public class ProjectWindow {
 			}
 			label = (value == null) ? "" : value.toString();
 			button.setText(label);
-			//isPushed = true;
 			return button;
 		}
 
 		public Object getCellEditorValue() {
-//			if (isPushed) {
-//				JOptionPane.showMessageDialog(button, label + ": Done");
-//			}
-//			isPushed = false;
 			return new String(label);
 		}
 
@@ -470,19 +509,27 @@ public class ProjectWindow {
 			super.fireEditingStopped();
 		}
 	}
-	
+
 	private void fetchStatus() {
 		// Fetch data for Table
 		tableModel = new DefaultTableModel(columns, 0); // columns, row
+		Project errorProject = null;
+		boolean errorFound = false;
 		for (Project p : projectList) {
-			ArrayList<String> jobStatus = (ArrayList<String>) MainController.getJenkins().fetchJobStatus(p);
-			String scanStatus = jobStatus.get(0);
-			p.setScanStatus(scanStatus);
-			String lastScanDate = jobStatus.get(1);
-			p.setLastScanDate(lastScanDate);
-
-			Object[] data = { p.getName(), p.getPlatform(), p.getLastScanDate(), p.getScanStatus(), "Scan Now",
-					"Configure", "View" };
+			//if (!p.getScanStatus().equals("Success") && !p.getScanStatus().equals("Not Start")) {
+			if(p.getScanStatus().equals("Scanning...")) {
+				ArrayList<String> jobStatus = (ArrayList<String>) MainController.getJenkins().fetchJobStatus(p);
+				String scanStatus = jobStatus.get(0);
+				p.setScanStatus(scanStatus);
+				String lastScanDate = jobStatus.get(1);
+				p.setLastScanDate(lastScanDate);
+				if(p.getScanStatus().equals("Failed") && p.isCheckError()) {
+					errorFound = true;
+					errorProject = p;
+				}
+			}
+			Object[] data = { p.getName(), p.getPlatform(), p.getLastScanDate().split(",")[0], p.getScanStatus(),
+					"Scan Now", "Configure", "View" };
 			tableModel.addRow(data);
 		}
 		ConfigUtils.saveProjects("config/projects.yaml", projectList);
@@ -500,8 +547,7 @@ public class ProjectWindow {
 		projectTableHeader = projectTable.getTableHeader();
 		projectTableHeader.setReorderingAllowed(false);
 		projectTableHeader.setFont(new Font("Tahoma", Font.PLAIN, 16));
-		((DefaultTableCellRenderer) projectTableHeader.getDefaultRenderer())
-				.setHorizontalAlignment(JLabel.CENTER);
+		((DefaultTableCellRenderer) projectTableHeader.getDefaultRenderer()).setHorizontalAlignment(JLabel.CENTER);
 
 		// Custom Column "Status"
 		projectTable.getColumn("Scan Status").setCellRenderer(new LabelRenderer());
@@ -517,6 +563,24 @@ public class ProjectWindow {
 		projectTable.getColumn("Result").setCellRenderer(new viewRenderer());
 		projectTable.getColumn("Result").setCellEditor(new viewEditor(new JCheckBox()));
 		projectTable.setDefaultRenderer(Object.class, new TableRenderer());
+		
+		if(errorFound) {
+			errorProject.setCheckError(false);
+			int option = JOptionPane.showOptionDialog(frame, MainController.getJenkins().getErrorResponse(errorProject) + "\nClick \"View Error\" to see console log.", "Jenkins Pipeline Error", JOptionPane.NO_OPTION, JOptionPane.ERROR_MESSAGE, null, options, options[0]);
+			if (option == 0) {
+				if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+					JenkinsUtils jenkins = MainController.getJenkins();
+					String uri = "http://localhost:8080/job/" + errorProject.getName() + "/" + jenkins.getLatestBuildId(errorProject.getName()) + "/consoleText";
+					try {
+						Desktop.getDesktop().browse(new URI(uri));
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					} catch (URISyntaxException e1) {
+						e1.printStackTrace();
+					}
+				}
+			}
+		}
 	}
 
 }

@@ -3,6 +3,8 @@ package appsecframework;
 import java.awt.EventQueue;
 import java.util.ArrayList;
 
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 import javax.swing.UIManager;
 
 import appsecframework.Utilities.ConfigUtils;
@@ -23,6 +25,9 @@ public class MainController {
 	private static ArrayList<TestingTool> mobileToolList;
 	private static ArrayList<TestingTool> webAppToolList;
 	
+	private static JFrame dbFrame;
+	private static JPanel highriskPanel;
+	private static boolean dbFetched;
 	
 	public static boolean initialize() {
 		System.out.println("----------INITIALIZING----------");
@@ -32,23 +37,13 @@ public class MainController {
 		projectList = ConfigUtils.importProjects("config/projects.yaml");
 		toolList = ConfigUtils.importTools("config/tools.yaml");
 		
-		/*
-		 * TODO:
-		 * 1. Populate Setting Page with values from frameworkConfig (Show passwords as bullet)
-		 * 2. Fetch Job statuses and show on project page
-		 * 3. Add formal Javadoc style method comments
-		 * 4. Edit methods to use values from frameworkConfig
-		 * 5. Save settings from Setting page to frameworkConfig
-		 */
-		categorizeToolByType();
-		
 		docker = new DockerUtils();	
 		// Connect to Docker and start Jenkins and DefectDojo
 		if (docker.connectDocker()) {
-			//docker.startDockerContainer("jenkins");
-			//docker.startDockerContainer("dojo");
-			docker.startDockerContainer("appsecframework_jenkins_1");
-			docker.startDockerContainer("appsecframework_dojo_1");
+			docker.startDockerContainer("jenkins");
+			docker.startDockerContainer("dojo");
+			//docker.startDockerContainer("appsecframework_jenkins_1");
+			//docker.startDockerContainer("appsecframework_dojo_1");
 
 		}
 		else return false;
@@ -60,6 +55,8 @@ public class MainController {
 		dojo = new DojoUtils(frameworkConfig.getDojoURL());
 		dojo.authenticate(frameworkConfig.getDojoUsername(), frameworkConfig.getDojoPassword());
 		
+		categorizeToolByType();
+		highriskPanel = new JPanel();
 		System.out.println("--------------------------------");
 		return true;
 	}
@@ -68,12 +65,16 @@ public class MainController {
 		return jenkins;
 	}
 	
-	public static DojoUtils getDojo()
-	{
-		return dojo;
-	}
 	public static void setJenkins(JenkinsUtils jenkins) {
 		MainController.jenkins = jenkins;
+	}
+	
+	public static DojoUtils getDojo() {
+		return dojo;
+	}
+	
+	public static void setDojo(DojoUtils dojo) {
+		MainController.dojo = dojo;
 	}
 
 	public static FrameworkConfig getFrameworkConfig() {
@@ -124,6 +125,30 @@ public class MainController {
 		MainController.webAppToolList = webToolList;
 	}
 	
+	public static JPanel getHighriskPanel() {
+		return highriskPanel;
+	}
+
+	public static void setHighriskPanel(JPanel highriskPanel) {
+		MainController.highriskPanel = highriskPanel;
+	}
+
+	public static JFrame getDbFrame() {
+		return dbFrame;
+	}
+
+	public static void setDbFrame(JFrame dbFrame) {
+		MainController.dbFrame = dbFrame;
+	}
+
+	public static boolean isDbFetched() {
+		return dbFetched;
+	}
+
+	public static void setDbFetched(boolean dbFetched) {
+		MainController.dbFetched = dbFetched;
+	}
+
 	public static void categorizeToolByType() {
 		ArrayList<TestingTool> desktopList = new ArrayList<TestingTool>();
 		ArrayList<TestingTool> mobileList = new ArrayList<TestingTool>();

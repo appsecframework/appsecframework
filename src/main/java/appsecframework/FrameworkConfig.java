@@ -1,6 +1,8 @@
 package appsecframework;
 
 public class FrameworkConfig {
+	// Variable Declarations
+
 	// Jenkins Configs
 	private String jenkinsURL = "http://localhost:8080";			
 	private String jenkinsUsername = "admin";
@@ -17,9 +19,9 @@ public class FrameworkConfig {
 	private String dojoPassword = "password";
 	
 	// Git Configs
-	private String gitEmail = "";												// For pulling from private repository
-	private String gitUsername = "";											// For pulling from private repository
-	private String gitPassword = "";											// For pulling from private repository
+	private String gitEmail = "";											// For pulling from private repository
+	private String gitUsername = "";										// For pulling from private repository
+	private String gitPassword = "";										// For pulling from private repository
 	
 	// Report Directory Configs
 	private String reportDirectory;

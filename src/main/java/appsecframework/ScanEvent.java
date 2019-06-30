@@ -9,7 +9,9 @@ public class ScanEvent {
 	private List<ScanResult> scanResultList;
 	private String scanStartDate;
 	private String scanFinishDate;
-	private boolean imported = false;
+	private String dojoStartDate;
+	private String dojoFinishDate;
+	private boolean imported = false;	//false = to import; true = imported
 	private int engagementId;
 
 	public ScanEvent() {
@@ -46,6 +48,22 @@ public class ScanEvent {
 
 	public void setScanFinishDate(String scanFinishDate) {
 		this.scanFinishDate = scanFinishDate;
+	}
+
+	public String getDojoStartDate() {
+		return dojoStartDate;
+	}
+
+	public void setDojoStartDate(String dojoStartDate) {
+		this.dojoStartDate = dojoStartDate;
+	}
+
+	public String getDojoFinishDate() {
+		return dojoFinishDate;
+	}
+
+	public void setDojoFinishDate(String dojoFinishDate) {
+		this.dojoFinishDate = dojoFinishDate;
 	}
 
 	public boolean isImported() {

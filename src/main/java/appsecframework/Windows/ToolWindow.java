@@ -60,7 +60,7 @@ public class ToolWindow {
 		panel = new JPanel(); // panel for all components
 		frame = SwingUtils.createWindow("Tool");
 		frame.getContentPane().add(panel);
-		menuPanel = SwingUtils.getMenuPanel();
+		menuPanel = SwingUtils.getMenuPanel(frame);
 
 		// ******************** Heading Panel ********************
 		headingPanel = new JPanel();

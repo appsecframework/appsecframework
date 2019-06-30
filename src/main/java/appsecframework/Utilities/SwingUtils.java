@@ -36,8 +36,7 @@ public class SwingUtils {
 	// Initialize JFrame for every pages
 	public static JFrame createWindow(String name) {
 		frame = new JFrame(name);
-
-		frame.setBounds(0, 0, 1300, 900);
+		frame.setBounds(300, 0, 1300, 900);
 		frame.setMinimumSize(new Dimension(1300, 900));
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setBackground(SystemColor.menu);
@@ -47,7 +46,7 @@ public class SwingUtils {
 	}
 
 	// Create Menu Panel for JFrame
-	public static JPanel getMenuPanel() {
+	public static JPanel getMenuPanel(JFrame frame) {
 		menuPanel = new JPanel();
 
 		// menuPanel's Components and add them to the panel

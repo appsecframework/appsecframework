@@ -63,7 +63,7 @@ public class SettingWindow {
 		panel = new JPanel(); // panel for all components
 		frame = SwingUtils.createWindow("Setting");
 		frame.getContentPane().add(panel);
-		menuPanel = SwingUtils.getMenuPanel();
+		menuPanel = SwingUtils.getMenuPanel(frame);
 
 		headingPanel = new JPanel();
 		JLabel lblSetting = new JLabel("Setting");
@@ -176,7 +176,7 @@ public class SettingWindow {
 		lblDefectdojoUsername.setFont(new Font("Tahoma", Font.PLAIN, 16));
 
 		txtfDefectdojoUsername = new JTextField();
-		txtfDefectdojoUsername.setText(txtfDefectdojoUsername.getText() + frameworkConfig.getDojoUsername());
+		txtfDefectdojoUsername.setText(frameworkConfig.getDojoUsername());
 		txtfDefectdojoUsername.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		txtfDefectdojoUsername.setColumns(10);
 
@@ -184,7 +184,7 @@ public class SettingWindow {
 		lblDefectdojoPassword.setFont(new Font("Tahoma", Font.PLAIN, 16));
 
 		txtfDefectdojoPassword = new JPasswordField();
-		txtfDefectdojoPassword.setText(txtfDefectdojoPassword.getText() + frameworkConfig.getDojoPassword());
+		txtfDefectdojoPassword.setText(frameworkConfig.getDojoPassword());
 		txtfDefectdojoPassword.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		txtfDefectdojoPassword.setColumns(10);
 
@@ -192,7 +192,7 @@ public class SettingWindow {
 		lblDefectDojoURL.setFont(new Font("Tahoma", Font.PLAIN, 16));
 
 		txtfDefectdojoURL = new JTextField();
-		txtfDefectdojoURL.setText(txtfDefectdojoURL.getText() + frameworkConfig.getDojoURL());
+		txtfDefectdojoURL.setText(frameworkConfig.getDojoURL());
 		txtfDefectdojoURL.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		txtfDefectdojoURL.setColumns(10);
 

@@ -44,6 +44,7 @@ public class AddToolWindow extends JFrame {
 	private JTextField txtfName;
 	private JTextField txtfReportExtension;
 	private JTextField txtfRespository;
+	private JTextField txtfScanType;
 	private JTextPane commandPane;
 	private JRadioButton rdbtnDocker;
 	private JRadioButton rdbtnGit;
@@ -65,33 +66,42 @@ public class AddToolWindow extends JFrame {
 	public void initialize() {
 		panel = new JPanel(); // panel for all components
 		frame = SwingUtils.createWindow("Add Tool");
-		frame.getContentPane().add(panel);
-		menuPanel = SwingUtils.getMenuPanel();
-
+		frame.getContentPane().add(panel); //
+		menuPanel = SwingUtils.getMenuPanel(frame);	
+		
 		// Detail for this window goes here
 		newToolsPanel = new JPanel();
 		JLabel lblNewTools = new JLabel("Add Tool");
 		lblNewTools.setFont(new Font("Tahoma", Font.PLAIN, 24));
-		
-		JLabel lblName = new JLabel("Name :");
+
+		JLabel lblName = new JLabel("Name:");
 		lblName.setForeground(Color.BLACK);
 		lblName.setFont(new Font("Tahoma", Font.PLAIN, 18));
 
 		JLabel lblReportExtension = new JLabel("Report Extension: ");
 		lblName.setForeground(Color.BLACK);
 		lblReportExtension.setFont(new Font("Tahoma", Font.PLAIN, 18));
-		
-		JLabel lblRespository = new JLabel("Respository :");
+
+		JLabel lblRespository = new JLabel("Respository: ");
 		lblRespository.setForeground(Color.BLACK);
 		lblRespository.setFont(new Font("Tahoma", Font.PLAIN, 18));
 
-		JLabel lblType = new JLabel("Type :");
+		JLabel lblScanType = new JLabel("DefectDojo Scan Type: ");
+		lblScanType.setForeground(Color.BLACK);
+		lblScanType.setFont(new Font("Tahoma", Font.PLAIN, 18));
+
+		JLabel lblType = new JLabel("Type: ");
 		lblType.setForeground(Color.BLACK);
 		lblType.setFont(new Font("Tahoma", Font.PLAIN, 18));
-		
+
+		JLabel lblCommand = new JLabel("Command: ");
+		lblCommand.setForeground(Color.BLACK);
+		lblCommand.setFont(new Font("Tahoma", Font.PLAIN, 18));
+
+		txtfName = new JTextField();
 		txtfReportExtension = new JTextField();
 		txtfRespository = new JTextField();
-		txtfName = new JTextField();
+		txtfScanType = new JTextField();
 
 		JSeparator separator = new JSeparator();
 		separator.setBackground(Color.LIGHT_GRAY);
@@ -106,7 +116,7 @@ public class AddToolWindow extends JFrame {
 		rdbtnGit.setFont(new Font("Tahoma", Font.PLAIN, 14));
 		rdbtnGit.addActionListener(rdbtnAction);
 		rdbtnGit.setVisible(false);
-		
+
 		rdbtnLocalFiles = new JRadioButton("Local Files");
 		rdbtnLocalFiles.setFont(new Font("Tahoma", Font.PLAIN, 14));
 		rdbtnLocalFiles.addActionListener(rdbtnAction);
@@ -148,11 +158,12 @@ public class AddToolWindow extends JFrame {
 					break;
 				}
 				tool.setToolName(txtfName.getText());
-				
+
 				tool.setToolReportExtension(txtfReportExtension.getText());
-				if(txtfReportExtension.getText().charAt(0) == '.') {
+				if (txtfReportExtension.getText().charAt(0) == '.') {
 					tool.setToolReportExtension(txtfReportExtension.getText().substring(1));
 				}
+				tool.setToolScanType(txtfScanType.getText());
 				tool.setToolSource(sourceType);
 				tool.setToolType(toolType);
 				tool.setScanScript(scanScript);
@@ -162,9 +173,18 @@ public class AddToolWindow extends JFrame {
 				new ToolWindow();
 			}
 		});
-
+		
 		JButton btnClear = new JButton("Clear");
-
+		
+		JButton btnHelp = new JButton("?");
+		btnHelp.setFont(new Font("Tahoma", Font.BOLD, 11));
+		btnHelp.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				new HelpWindow();
+			}
+		});
+		
+		
 		JFileChooser jfcRes = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
 		jfcRes.setDialogTitle("Choose a directory to open your files");
 		jfcRes.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -188,9 +208,6 @@ public class AddToolWindow extends JFrame {
 		commandPane.setFont(new Font("Tahoma", Font.PLAIN, 14));
 		commandPanel.add(commandPane);
 
-		JLabel lblCommand = new JLabel("Command: ");
-		lblCommand.setFont(new Font("Tahoma", Font.PLAIN, 18));
-
 		// Set all layouts
 		GroupLayout gl_newToolsPanel = new GroupLayout(newToolsPanel);
 		gl_newToolsPanel.setHorizontalGroup(
@@ -198,9 +215,6 @@ public class AddToolWindow extends JFrame {
 				.addGroup(gl_newToolsPanel.createSequentialGroup()
 					.addContainerGap()
 					.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.LEADING)
-						.addGroup(gl_newToolsPanel.createSequentialGroup()
-							.addComponent(commandScrollPane, GroupLayout.PREFERRED_SIZE, 1071, GroupLayout.PREFERRED_SIZE)
-							.addContainerGap())
 						.addGroup(gl_newToolsPanel.createSequentialGroup()
 							.addComponent(rdbtnDocker)
 							.addGap(47)
@@ -220,18 +234,13 @@ public class AddToolWindow extends JFrame {
 									.addComponent(btnBrowseRespository, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE))
 								.addGroup(gl_newToolsPanel.createSequentialGroup()
 									.addComponent(lblName, GroupLayout.PREFERRED_SIZE, 73, GroupLayout.PREFERRED_SIZE)
-									.addPreferredGap(ComponentPlacement.UNRELATED)
+									.addGap(10)
 									.addComponent(txtfName, GroupLayout.PREFERRED_SIZE, 308, GroupLayout.PREFERRED_SIZE)))
 							.addGap(31))
 						.addGroup(gl_newToolsPanel.createSequentialGroup()
 							.addComponent(btnAddTool, GroupLayout.PREFERRED_SIZE, 114, GroupLayout.PREFERRED_SIZE)
-							.addGap(19)
-							.addComponent(btnClear, GroupLayout.PREFERRED_SIZE, 114, GroupLayout.PREFERRED_SIZE)
-							.addContainerGap(907, Short.MAX_VALUE))
-						.addGroup(gl_newToolsPanel.createSequentialGroup()
-							.addComponent(lblType)
 							.addGap(18)
-							.addComponent(comboboxType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+							.addComponent(btnClear, GroupLayout.PREFERRED_SIZE, 114, GroupLayout.PREFERRED_SIZE)
 							.addContainerGap())
 						.addGroup(gl_newToolsPanel.createSequentialGroup()
 							.addComponent(lblReportExtension)
@@ -239,8 +248,24 @@ public class AddToolWindow extends JFrame {
 							.addComponent(txtfReportExtension, GroupLayout.PREFERRED_SIZE, 308, GroupLayout.PREFERRED_SIZE)
 							.addContainerGap())
 						.addGroup(gl_newToolsPanel.createSequentialGroup()
-							.addComponent(lblCommand)
-							.addContainerGap(1062, Short.MAX_VALUE))))
+							.addComponent(lblScanType, GroupLayout.PREFERRED_SIZE, 220, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.RELATED)
+							.addComponent(txtfScanType, GroupLayout.PREFERRED_SIZE, 308, GroupLayout.PREFERRED_SIZE)
+							.addContainerGap())
+						.addGroup(gl_newToolsPanel.createSequentialGroup()
+							.addComponent(commandScrollPane, GroupLayout.PREFERRED_SIZE, 1071, GroupLayout.PREFERRED_SIZE)
+							.addContainerGap(83, Short.MAX_VALUE))
+						.addGroup(gl_newToolsPanel.createSequentialGroup()
+							.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.TRAILING)
+								.addGroup(Alignment.LEADING, gl_newToolsPanel.createSequentialGroup()
+									.addComponent(lblCommand)
+									.addPreferredGap(ComponentPlacement.RELATED)
+									.addComponent(btnHelp))
+								.addGroup(Alignment.LEADING, gl_newToolsPanel.createSequentialGroup()
+									.addComponent(lblType)
+									.addPreferredGap(ComponentPlacement.RELATED)
+									.addComponent(comboboxType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)))
+							.addGap(989))))
 		);
 		gl_newToolsPanel.setVerticalGroup(
 			gl_newToolsPanel.createParallelGroup(Alignment.LEADING)
@@ -262,27 +287,36 @@ public class AddToolWindow extends JFrame {
 								.addComponent(lblRespository)
 								.addComponent(txtfRespository, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)))
 						.addComponent(btnBrowseRespository, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
-					.addGap(21)
-					.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.LEADING)
-						.addComponent(lblName, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-						.addComponent(txtfName, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
-					.addGap(20)
-					.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(txtfReportExtension, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblReportExtension))
-					.addGap(16)
+					.addGap(9)
+					.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.TRAILING)
+						.addGroup(gl_newToolsPanel.createSequentialGroup()
+							.addComponent(txtfName, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+							.addGap(14))
+						.addGroup(gl_newToolsPanel.createSequentialGroup()
+							.addComponent(lblName, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+							.addPreferredGap(ComponentPlacement.UNRELATED)))
+					.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.TRAILING)
+						.addComponent(lblReportExtension)
+						.addComponent(txtfReportExtension, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
+					.addGap(17)
+					.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.TRAILING)
+						.addComponent(txtfScanType, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblScanType, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
+					.addGap(11)
 					.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.BASELINE)
 						.addComponent(lblType, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
 						.addComponent(comboboxType, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
-					.addGap(18)
-					.addComponent(lblCommand)
-					.addGap(18)
+					.addPreferredGap(ComponentPlacement.RELATED)
+					.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.TRAILING)
+						.addComponent(lblCommand)
+						.addComponent(btnHelp))
+					.addPreferredGap(ComponentPlacement.UNRELATED)
 					.addComponent(commandScrollPane, GroupLayout.PREFERRED_SIZE, 408, GroupLayout.PREFERRED_SIZE)
-					.addGap(18)
+					.addPreferredGap(ComponentPlacement.RELATED)
 					.addGroup(gl_newToolsPanel.createParallelGroup(Alignment.BASELINE)
-						.addComponent(btnClear, GroupLayout.PREFERRED_SIZE, 67, GroupLayout.PREFERRED_SIZE)
-						.addComponent(btnAddTool, GroupLayout.PREFERRED_SIZE, 67, GroupLayout.PREFERRED_SIZE))
-					.addContainerGap())
+						.addComponent(btnAddTool, GroupLayout.PREFERRED_SIZE, 67, GroupLayout.PREFERRED_SIZE)
+						.addComponent(btnClear, GroupLayout.PREFERRED_SIZE, 67, GroupLayout.PREFERRED_SIZE))
+					.addGap(31))
 		);
 		newToolsPanel.setLayout(gl_newToolsPanel);
 

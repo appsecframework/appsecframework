@@ -65,6 +65,7 @@ public class ProjectConfigurationWindow extends JFrame {
 	private String[] projectTypeList = new String[] { "", "Desktop", "Mobile Application", "Web Application" };
 	private String projectType = "";
 	private String sourceType = "";
+	private JButton btnBrowsePath;
 	
 	public ProjectConfigurationWindow(Project _project, int _index) {
 		projectList = MainController.getProjectList();
@@ -79,8 +80,8 @@ public class ProjectConfigurationWindow extends JFrame {
 		panel = new JPanel(); // panel for all components
 		frame = SwingUtils.createWindow("Project Configuration");
 		frame.getContentPane().add(panel);
-		menuPanel = SwingUtils.getMenuPanel();
-
+		menuPanel = SwingUtils.getMenuPanel(frame);
+		
 		customScanPanel = new JPanel(new GridLayout(0, 1, 0, 0));
 		customScanCheckboxPanel = new JPanel(new GridLayout(0, 1, 5, 5));
 		customScanScrollPane = new JScrollPane(customScanCheckboxPanel);
@@ -156,11 +157,22 @@ public class ProjectConfigurationWindow extends JFrame {
 				int returnValue = jfcRes.showOpenDialog(null);
 				if (returnValue == JFileChooser.APPROVE_OPTION) {
 					File selectedFile = jfcRes.getSelectedFile();
-					txtfRespository.setText(selectedFile.getAbsolutePath());
+					txtfRespository.setText(selectedFile.getAbsolutePath() + "/");
 				}
 			}
 		});
-
+		
+		btnBrowsePath = new JButton("Browse...");
+		btnBrowsePath.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				int returnValue = jfcRes.showOpenDialog(null);
+				if (returnValue == JFileChooser.APPROVE_OPTION) {
+					File selectedFile = jfcRes.getSelectedFile();
+					txtfReportPath.setText(selectedFile.getAbsolutePath() + "/");
+				}
+			}
+		});
+		
 		// Customization goes here
 		txtfRespository = new JTextField();
 		txtfProjectName = new JTextField();
@@ -319,23 +331,20 @@ public class ProjectConfigurationWindow extends JFrame {
 								.addComponent(lblConfiguration)
 								.addGroup(gl_configurationPanel.createSequentialGroup()
 									.addGroup(gl_configurationPanel.createParallelGroup(Alignment.LEADING, false)
-										.addGroup(gl_configurationPanel.createParallelGroup(Alignment.LEADING, false)
-											.addGroup(gl_configurationPanel.createSequentialGroup()
-												.addComponent(lblRespository, GroupLayout.PREFERRED_SIZE, 126, GroupLayout.PREFERRED_SIZE)
-												.addPreferredGap(ComponentPlacement.RELATED, 18, Short.MAX_VALUE))
-											.addGroup(gl_configurationPanel.createSequentialGroup()
-												.addComponent(lblProjectName, GroupLayout.PREFERRED_SIZE, 139, GroupLayout.PREFERRED_SIZE)
-												.addPreferredGap(ComponentPlacement.RELATED)))
-										.addGroup(gl_configurationPanel.createSequentialGroup()
-											.addComponent(lblReportPath, GroupLayout.PREFERRED_SIZE, 140, GroupLayout.PREFERRED_SIZE)
-											.addPreferredGap(ComponentPlacement.RELATED)))
-									.addGroup(gl_configurationPanel.createParallelGroup(Alignment.LEADING)
+										.addComponent(lblRespository, GroupLayout.PREFERRED_SIZE, 126, GroupLayout.PREFERRED_SIZE)
+										.addComponent(lblProjectName, GroupLayout.PREFERRED_SIZE, 139, GroupLayout.PREFERRED_SIZE)
+										.addComponent(lblReportPath, GroupLayout.PREFERRED_SIZE, 140, GroupLayout.PREFERRED_SIZE))
+									.addPreferredGap(ComponentPlacement.RELATED, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+									.addGroup(gl_configurationPanel.createParallelGroup(Alignment.LEADING, false)
 										.addGroup(gl_configurationPanel.createSequentialGroup()
 											.addComponent(txtfRespository, GroupLayout.PREFERRED_SIZE, 308, GroupLayout.PREFERRED_SIZE)
 											.addGap(18)
 											.addComponent(btnBrowseRespository, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE))
 										.addComponent(txtfProjectName, GroupLayout.PREFERRED_SIZE, 308, GroupLayout.PREFERRED_SIZE)
-										.addComponent(txtfReportPath, GroupLayout.PREFERRED_SIZE, 308, GroupLayout.PREFERRED_SIZE))
+										.addGroup(gl_configurationPanel.createSequentialGroup()
+											.addComponent(txtfReportPath, GroupLayout.PREFERRED_SIZE, 308, GroupLayout.PREFERRED_SIZE)
+											.addGap(18)
+											.addComponent(btnBrowsePath, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
 									.addGap(890)))
 							.addGap(31))
 						.addGroup(gl_configurationPanel.createSequentialGroup()
@@ -388,7 +397,8 @@ public class ProjectConfigurationWindow extends JFrame {
 					.addGap(21)
 					.addGroup(gl_configurationPanel.createParallelGroup(Alignment.BASELINE)
 						.addComponent(txtfReportPath, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblReportPath, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
+						.addComponent(lblReportPath, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+						.addComponent(btnBrowsePath))
 					.addGap(17)
 					.addGroup(gl_configurationPanel.createParallelGroup(Alignment.BASELINE)
 						.addComponent(lblType, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)

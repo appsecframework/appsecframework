@@ -17,9 +17,11 @@ public class Project {
 	private List<Scan> scanList;
 	private List<ScanEvent> scanEventList;
 	private String pastScanResultPath;
+	private String startScanDate;
 	private String lastScanDate;
 	private String scanStatus;
-	private boolean imported;
+	private boolean recent;
+	private boolean checkError;
 	
 	/*
 	 * TODO:
@@ -27,7 +29,6 @@ public class Project {
 	 */
 
 	public Project() {
-		
 	}
 	
 	public Project(String _name) {
@@ -41,10 +42,13 @@ public class Project {
 		reportPath = "";
 		customScan = false;
 		scanList = new ArrayList<Scan>();
-		setScanEventList(new ArrayList<ScanEvent>());
+		scanEventList = new ArrayList<ScanEvent>();
 		pastScanResultPath = "";
+		startScanDate = "";
 		lastScanDate = "";
 		scanStatus = "";
+		recent = false;
+		checkError = false;
 	}
 
 	public String getName() {
@@ -143,6 +147,14 @@ public class Project {
 		this.pastScanResultPath = pastScanResultPath;
 	}
 
+	public String getStartScanDate() {
+		return startScanDate;
+	}
+
+	public void setStartScanDate(String startScanDate) {
+		this.startScanDate = startScanDate;
+	}
+
 	public String getLastScanDate() {
 		return lastScanDate;
 	}
@@ -159,13 +171,20 @@ public class Project {
 		this.scanStatus = scanStatus;
 	}
 
-	public boolean isImported() {
-		return imported;
+	public boolean isRecent() {
+		return recent;
 	}
 
-	public void setImported(boolean imported) {
-		this.imported = imported;
+	public void setRecent(boolean recent) {
+		this.recent = recent;
+	}
+
+	public boolean isCheckError() {
+		return checkError;
+	}
+
+	public void setCheckError(boolean checkError) {
+		this.checkError = checkError;
 	}
 	
-
 }
